@@ -29,10 +29,13 @@ class Presencial_Services(Base):
     description = Column(String) # Desciption. Example: Sells food and drinks
     location = Column(String) # Location of the Serice. Example: Civil's Building
     
-
     def __repr__(self):
         return "<Presencial_Services(id=%d title='%s', description='%s', location=%s)>" % (
                                 self.id, self.title, self.description, self.location)
+    def as_dict(self):
+        return {
+            c.name: getattr(self, c.name) for c in self.__table__.columns
+        }
     
 
 
@@ -63,7 +66,14 @@ if __name__ == "__main__":
         newService("Secretaria" ,"Papelada","Edificio Central")
       
     #queries
-    #print("\nAll Services")
-    for u in session.query(Presencial_Services).all():
-        print( u.__dict__ )
-    #print(listServices())
+    print("\nAll Services")
+
+    mylist = listServices()
+    for a in mylist:
+        print(a.as_dict())
+    
+    print(listServices())
+
+
+    #for u in session.query(Presencial_Services).all():
+    #    print( u.__dict__ )
