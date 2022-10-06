@@ -1,3 +1,12 @@
+from email import message
+from fileinput import filename
+from multiprocessing import context
+from flask import Flask, request, send_from_directory, redirect, url_for
+from werkzeug.utils import secure_filename
+
+import requests
+import json
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Date
@@ -48,7 +57,7 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 
-def listServices():
+def listCourses():
     return session.query(Course).all()
 
 def newCourse(name,professor , year, description):
@@ -62,16 +71,34 @@ if __name__ == "__main__":
         newCourse("ADINT","Jnos" ,"2022/2023", "Aprender aplicações" )
         newCourse("CINT","Nuno Horta" ,"2022/2023", "Computação Inteligente" )
         newCourse("PIC","Pedro Lima" ,"2022/2023", "Preparação da Tese" )
-      
-    #queries
-    print("\nAll Services")
 
-    mylist = listServices()
-    for a in mylist:
-        print(a.as_dict())
+################################
+########### FLASK ##############
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "HI"
+
+@app.route('/createCourse', methods=['GET', 'POST'])
+
+@app.route('/listCourses')
+def getAllCourses():
+    myList = []
+
+    courses = listCourses()
+
+    for course in courses:
+        myList.append(course.as_dict())
+
+    return myList
+
+
+################################
+############ MAIN ##############
+
+
+if __name__ == "__main__":
     
-    print(listServices())
-
-
-    #for u in session.query(Presencial_Services).all():
-    #    print( u.__dict__ )
+    app.run(host='0.0.0.0', port=8001, debug=True)

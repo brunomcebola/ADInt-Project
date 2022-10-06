@@ -1,3 +1,13 @@
+from email import message
+from fileinput import filename
+from multiprocessing import context
+from flask import Flask, request, send_from_directory, redirect, url_for
+from werkzeug.utils import secure_filename
+
+import requests
+import json
+
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Date
@@ -49,7 +59,7 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 
-def listServices():
+def listActivities():
     return session.query(Activities).all()
 
 def newActivities(name,activityType , time, description, year, month,day):
@@ -61,17 +71,35 @@ def newActivities(name,activityType , time, description, year, month,day):
 if __name__ == "__main__":
 
     if not db_exists:
-        newActivities("ADINT","Class" ,"2022", "Aprender aplicações",2022, 10,6 )
-      
-    #queries
-    print("\nAll Services")
+        newActivities("ADINT","Class" ,"2 hours", "Aprender aplicações",2022, 10,6 )
 
-    mylist = listServices()
-    for a in mylist:
-        print(a.as_dict())
+################################
+########### FLASK ##############
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "HI"
+
+@app.route('/createCourse', methods=['GET', 'POST'])
+
+@app.route('/listActivities')
+def getAllCourses():
+    myList = []
+
+    activities = listActivities()
+
+    for activity in activities:
+        myList.append(activity.as_dict())
+
+    return myList
+
+
+################################
+############ MAIN ##############
+
+
+if __name__ == "__main__":
     
-    print(listServices())
-
-
-    #for u in session.query(Presencial_Services).all():
-    #    print( u.__dict__ )
+    app.run(host='0.0.0.0', port=8002, debug=True)

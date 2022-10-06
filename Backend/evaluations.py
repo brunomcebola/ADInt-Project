@@ -1,6 +1,15 @@
+from email import message
+from fileinput import filename
+from multiprocessing import context
+from flask import Flask, request, send_from_directory, redirect, url_for
+from werkzeug.utils import secure_filename
+
+import requests
+import json
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Date
+from sqlalchemy import Column, Integer, String
 
 from sqlalchemy import inspect
 
@@ -46,14 +55,14 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 
-def listServices():
+def listEvaluations():
     return session.query(Evaluation).all()
 
 def newEvaluation(title , rating):
     auth = Evaluation(title = title, rating=rating)
     session.add(auth)
     session.commit()
-
+"""
 if __name__ == "__main__":
 
     if not db_exists:
@@ -69,7 +78,38 @@ if __name__ == "__main__":
         print(a.as_dict())
     
     print(listServices())
+"""
 
 
-    #for u in session.query(Presencial_Services).all():
-    #    print( u.__dict__ )
+################################
+########### FLASK ##############
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "HI"
+
+@app.route('/createEvaluation', methods=['GET', 'POST'])
+
+@app.route('/listEvaluations')
+def getAllEvaluations():
+    myList = []
+
+    evaluations = listEvaluations()
+
+    for evaluation in evaluations:
+        myList.append(evaluation.as_dict())
+
+    return myList
+
+
+################################
+############ MAIN ##############
+
+
+if __name__ == "__main__":
+    
+    app.run(host='0.0.0.0', port=8003, debug=True)
+
+  
