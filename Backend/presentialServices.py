@@ -11,7 +11,7 @@ from os import path
 
 
 #SLQ access layer initialization
-DATABASE_FILE = "PresentialServicesDB.sqlite"
+DATABASE_FILE = "./Databases/PresentialServicesDB.sqlite"
 db_exists = False
 if path.exists(DATABASE_FILE):
     db_exists = True

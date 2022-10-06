@@ -11,7 +11,7 @@ from os import path
 
 
 #SLQ access layer initialization
-DATABASE_FILE = "PresentialServicesDB.sqlite"
+DATABASE_FILE = "./Databases/EvaluationDB.sqlite"
 db_exists = False
 if path.exists(DATABASE_FILE):
     db_exists = True
@@ -22,16 +22,16 @@ engine = create_engine('sqlite:///%s'%(DATABASE_FILE), echo=False) #echo = True 
 Base = declarative_base()
 
 #Declaration of data
-class Presencial_Services(Base):
-    __tablename__ = 'presencial_services'
+class Evaluation(Base):
+    __tablename__ = 'evaluation'
     id = Column(Integer, primary_key=True) 
     title = Column(String) # Title of the Serice. Example: Bar de Civil
-    description = Column(String) # Desciption. Example: Sells food and drinks
-    location = Column(String) # Location of the Serice. Example: Civil's Building
+    rating = Column(Integer) # Rating. Example: 2
+    
     
     def __repr__(self):
-        return "<Presencial_Services(id=%d title='%s', description='%s', location=%s)>" % (
-                                self.id, self.title, self.description, self.location)
+        return "<Evaluation(id=%d title='%s', rating='%s')>" % (
+                                self.id, self.title, self.rating)
     def as_dict(self):
         return {
             c.name: getattr(self, c.name) for c in self.__table__.columns
@@ -47,19 +47,19 @@ session = Session()
 
 
 def listServices():
-    return session.query(Presencial_Services).all()
+    return session.query(Evaluation).all()
 
-def newService(title , description, location):
-    auth = Presencial_Services(title = title, description=description, location=location)
+def newEvaluation(title , rating):
+    auth = Evaluation(title = title, rating=rating)
     session.add(auth)
     session.commit()
 
 if __name__ == "__main__":
 
     if not db_exists:
-        newService("Cantina" , "Vende Comida","Torre de Eletro")
-        newService("Campo" , "Praticar Futsal","Ao pé da secção de folhas")
-        newService("Secretaria" ,"Papelada","Edificio Central")
+        newEvaluation("Cantina" ,3 )
+        newEvaluation("Campo" , 4)
+        newEvaluation("Secretaria" ,2)
       
     #queries
     print("\nAll Services")
