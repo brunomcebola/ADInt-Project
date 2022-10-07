@@ -1,3 +1,4 @@
+from calendar import month
 from email import message
 from fileinput import filename
 from multiprocessing import context
@@ -78,11 +79,42 @@ if __name__ == "__main__":
 
 app = Flask(__name__)
 
-@app.route("/")
-def home():
-    return "HI"
+@app.route('/createActivity/request', methods=['GET', 'POST'])
+def createCourse():
+    if request.method == 'POST':
+        name=""
+        activityType=""
+        year = ""
+        time=""
+        month=""
+        day=""
+        description=""
+        result = request.form
+        print(result)
+        for key, value in result.items():
+            if key == 'name':
+                name = value
+            if key == 'activityType':
+                activityType = value
+            if key == 'year':
+                year = value
+            if key == 'time':
+                time = value
+            if key == 'month':
+                month = value
+            if key == 'day':
+                day = value
+            if key =="description":
+                description=value
+            
+        if name == "" and year == "" and activityType=="" and time =="" and day=="" and month=="":
+            return "You didn't put anything", 400
+        
+        #create Service
+        newActivities(name=name,activityType=activityType , 
+                    time=time, description=description, year=year, month=month,day=day)
 
-@app.route('/createCourse', methods=['GET', 'POST'])
+        return "Resultou" , 200
 
 @app.route('/listActivities')
 def getAllCourses():

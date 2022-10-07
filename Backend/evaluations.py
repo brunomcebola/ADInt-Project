@@ -90,7 +90,26 @@ app = Flask(__name__)
 def home():
     return "HI"
 
-@app.route('/createEvaluation', methods=['GET', 'POST'])
+@app.route('/createEvaluations/request', methods=['GET', 'POST'])
+def createEvaluations():
+    if request.method == 'POST':
+        title=""
+        rating=""
+        result = request.form
+        print(result)
+        for key, value in result.items():
+            if key == 'title':
+                title = value
+            if key == 'rating':
+                rating = value
+            
+        if title == "" and rating == "":
+            return "You didn't put anything", 400
+        
+        #create Service
+        newEvaluation(title=title,rating=rating)
+
+        return "Resultou" , 200
 
 @app.route('/listEvaluations')
 def getAllEvaluations():

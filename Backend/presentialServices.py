@@ -1,7 +1,8 @@
 from email import message
 from fileinput import filename
 from multiprocessing import context
-from flask import Flask, request, send_from_directory, redirect, url_for
+from operator import methodcaller
+from flask import Flask, request, send_from_directory, redirect, url_for, render_template
 from werkzeug.utils import secure_filename
 
 import requests
@@ -82,11 +83,29 @@ for a in mylist:
 
 app = Flask(__name__)
 
-@app.route("/")
-def home():
-    return "HI"
+@app.route('/createService/request', methods=['GET', 'POST'])
+def createService():
+    if request.method == 'POST':
+        title=""
+        description=""
+        location = ""
+        result = request.form
+        print(result)
+        for key, value in result.items():
+            if key == 'title':
+                title = value
+            if key == 'description':
+                description = value
+            if key == 'location':
+                location = value
+            
+        if title == "" and description == "" and location == "":
+            return "You didn't put anything", 400
+        
+        #create Service
+        newService(title=title,description=description, location=location)
 
-@app.route('/createService', methods=['GET', 'POST'])
+        return "Resultou" , 200
 
 @app.route('/listServices')
 def getAllServices():

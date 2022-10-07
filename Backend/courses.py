@@ -1,6 +1,7 @@
 from email import message
 from fileinput import filename
 from multiprocessing import context
+from unicodedata import name
 from flask import Flask, request, send_from_directory, redirect, url_for
 from werkzeug.utils import secure_filename
 
@@ -77,11 +78,32 @@ if __name__ == "__main__":
 
 app = Flask(__name__)
 
-@app.route("/")
-def home():
-    return "HI"
+@app.route('/createCourse/request', methods=['GET', 'POST'])
+def createCourse():
+    if request.method == 'POST':
+        name=""
+        professor=""
+        year = ""
+        description=""
+        result = request.form
+        print(result)
+        for key, value in result.items():
+            if key == 'name':
+                name = value
+            if key == 'professor':
+                professor = value
+            if key == 'description':
+                description = value
+            if key == 'year':
+                year = value
+            
+        if name == "" and description == "" and year == "" and professor=="":
+            return "You didn't put anything", 400
+        
+        #create Service
+        newCourse(name=name,professor=professor , year=year, description=description)
 
-@app.route('/createCourse', methods=['GET', 'POST'])
+        return "Resultou" , 200
 
 @app.route('/listCourses')
 def getAllCourses():
