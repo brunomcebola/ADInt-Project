@@ -81,40 +81,48 @@ app = Flask(__name__)
 @app.route('/createCourse', methods=['GET', 'POST'])
 def createCourse():
     if request.method == 'POST':
-        name=""
-        professor=""
-        year = ""
-        description=""
-        result = request.json
-        print(result)
-        for key, value in result.items():
-            if key == 'name':
-                name = value
-            if key == 'professor':
-                professor = value
-            if key == 'description':
-                description = value
-            if key == 'year':
-                year = value
-            
-        if name == "" and description == "" and year == "" and professor=="":
-            return "You didn't put anything", 400
-        
-        #create Service
-        newCourse(name=name,professor=professor , year=year, description=description)
+        if "Token" in request.headers:
+            if request.headers['Token'] == "proxy":
+                name=""
+                professor=""
+                year = ""
+                description=""
+                result = request.json
+                print(result)
+                for key, value in result.items():
+                    if key == 'name':
+                        name = value
+                    if key == 'professor':
+                        professor = value
+                    if key == 'description':
+                        description = value
+                    if key == 'year':
+                        year = value
+                    
+                if name == "" and description == "" and year == "" and professor=="":
+                    return "You didn't put anything", 400
+                
+                #create Service
+                newCourse(name=name,professor=professor , year=year, description=description)
 
-        return "Resultou" , 200
+                return result , 200
+            return "Permission Denied", 401
+        return "Header Invalid", 400
 
 @app.route('/listCourses')
 def getAllCourses():
-    myList = []
+    if "Token" in request.headers:
+        if request.headers['Token'] == "proxy":
+            myList = []
 
-    courses = listCourses()
+            courses = listCourses()
 
-    for course in courses:
-        myList.append(course.as_dict())
+            for course in courses:
+                myList.append(course.as_dict())
 
-    return myList
+            return myList, 200
+        return "Permission Denied", 401
+    return "Header Invalid", 400
 
 
 ################################

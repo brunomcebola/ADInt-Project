@@ -93,34 +93,42 @@ def home():
 @app.route('/createEvaluation', methods=['GET', 'POST'])
 def createEvaluations():
     if request.method == 'POST':
-        title=""
-        rating=""
-        result = request.json
-        print(result)
-        for key, value in result.items():
-            if key == 'title':
-                title = value
-            if key == 'rating':
-                rating = value
-            
-        if title == "" and rating == "":
-            return "You didn't put anything", 400
-        
-        #create Service
-        newEvaluation(title=title,rating=rating)
+        if "Token" in request.headers:
+            if request.headers['Token'] == "proxy":
+                title=""
+                rating=""
+                result = request.json
+                print(result)
+                for key, value in result.items():
+                    if key == 'title':
+                        title = value
+                    if key == 'rating':
+                        rating = value
+                    
+                if title == "" and rating == "":
+                    return "You didn't put anything", 400
+                
+                #create Service
+                newEvaluation(title=title,rating=rating)
 
-        return "Resultou" , 200
+                return result , 200
+            return "Permission Denied", 401
+        return "Header Invalid", 400
 
 @app.route('/listEvaluations')
 def getAllEvaluations():
-    myList = []
+    if "Token" in request.headers:
+        if request.headers['Token'] == "proxy":
+            myList = []
 
-    evaluations = listEvaluations()
+            evaluations = listEvaluations()
 
-    for evaluation in evaluations:
-        myList.append(evaluation.as_dict())
+            for evaluation in evaluations:
+                myList.append(evaluation.as_dict())
 
-    return myList
+            return myList, 200
+        return "Permission Denied", 401
+    return "Header Invalid", 400
 
 
 ################################

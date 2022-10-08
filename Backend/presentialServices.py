@@ -86,38 +86,46 @@ app = Flask(__name__)
 @app.route('/createService', methods=['GET', 'POST'])
 def createService():
     if request.method == 'POST':
-        title=""
-        description=""
-        location = ""
-        result = request.json
-        print(result)
-        for key, value in result.items():
-            if key == 'title':
-                title = value
-            if key == 'description':
-                description = value
-            if key == 'location':
-                location = value
-            
-        if title == "" and description == "" and location == "":
-            return "You didn't put anything", 400
-        
-        #create Service
-        newService(title=title,description=description, location=location)
+        if "Token" in request.headers:
+            if request.headers['Token'] == "proxy":
+                title=""
+                description=""
+                location = ""
+                result = request.json
+                print(result)
+                for key, value in result.items():
+                    if key == 'title':
+                        title = value
+                    if key == 'description':
+                        description = value
+                    if key == 'location':
+                        location = value
+                    
+                if title == "" and description == "" and location == "":
+                    return "You didn't put anything", 400
+                
+                #create Service
+                newService(title=title,description=description, location=location)
 
-        return result, 200
+                return result, 200
+            return "Permission denied", 401
+        return "Headers Invalid", 400
 
 @app.route('/listServices')
 def getAllServices():
     myList = []
+    print(request.headers)
+    if "Token" in request.headers:
+        if request.headers['Token'] == "proxy":
+            services = listServices()
 
-    services = listServices()
+            for service in services:
+                myList.append(service.as_dict())
+            print(json.dumps(myList))
+            return json.dumps(myList)
 
-    for service in services:
-        myList.append(service.as_dict())
-    print(json.dumps(myList))
-    return json.dumps(myList)
-
+        return "Permission denied", 401
+    return "Headers Invalid", 400
 
 ################################
 ############ MAIN ##############

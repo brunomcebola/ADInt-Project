@@ -82,50 +82,58 @@ app = Flask(__name__)
 @app.route('/createActivity', methods=['GET', 'POST'])
 def createCourse():
     if request.method == 'POST':
-        name=""
-        activityType=""
-        year = ""
-        time=""
-        month=""
-        day=""
-        description=""
-        result = request.json
-        print(result)
-        for key, value in result.items():
-            if key == 'name':
-                name = value
-            if key == 'activityType':
-                activityType = value
-            if key == 'year':
-                year = value
-            if key == 'time':
-                time = value
-            if key == 'month':
-                month = value
-            if key == 'day':
-                day = value
-            if key =="description":
-                description=value
-            
-        if name == "" and year == "" and activityType=="" and time =="" and day=="" and month=="":
-            return "You didn't put anything", 400
-        
-        #create Service
-        newActivities(name=name,activityType=activityType , 
-                    time=time, description=description, year=year, month=month,day=day)
+        if "Token" in request.headers:
+            if request.headers['Token'] == "proxy":
+                name=""
+                activityType=""
+                year = ""
+                time=""
+                month=""
+                day=""
+                description=""
+                result = request.json
+                print(result)
+                for key, value in result.items():
+                    if key == 'name':
+                        name = value
+                    if key == 'activityType':
+                        activityType = value
+                    if key == 'year':
+                        year = value
+                    if key == 'time':
+                        time = value
+                    if key == 'month':
+                        month = value
+                    if key == 'day':
+                        day = value
+                    if key =="description":
+                        description=value
+                    
+                if name == "" and year == "" and activityType=="" and time =="" and day=="" and month=="":
+                    return "You didn't put anything", 400
+                
+                #create Service
+                newActivities(name=name,activityType=activityType , 
+                            time=time, description=description, year=year, month=month,day=day)
 
-        return "Resultou" , 200
+                return result , 200
+            return "Permission Denied", 401
+        return "Header Invalid", 400
 
 @app.route('/listActivities')
 def getAllCourses():
-    myList = []
+    if "Token" in request.headers:
+        if request.headers['Token'] == "proxy":
+            myList = []
 
-    activities = listActivities()
+            activities = listActivities()
 
-    for activity in activities:
-        myList.append(activity.as_dict())
+            for activity in activities:
+                myList.append(activity.as_dict())
 
-    return myList
+            return myList
+        return "Permission Denied", 401
+    return "Header Invalid", 400
 
 
 ################################
