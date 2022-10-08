@@ -83,7 +83,7 @@ for a in mylist:
 
 app = Flask(__name__)
 
-@app.route('/createService/request', methods=['GET', 'POST'])
+@app.route('/createService', methods=['GET', 'POST'])
 def createService():
     if request.method == 'POST':
         title=""
@@ -105,7 +105,7 @@ def createService():
         #create Service
         newService(title=title,description=description, location=location)
 
-        return "Resultou" , 200
+        return result, 200
 
 @app.route('/listServices')
 def getAllServices():
@@ -115,8 +115,8 @@ def getAllServices():
 
     for service in services:
         myList.append(service.as_dict())
-
-    return myList
+    print(json.dumps(myList))
+    return json.dumps(myList)
 
 
 ################################

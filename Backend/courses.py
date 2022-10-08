@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
 app = Flask(__name__)
 
-@app.route('/createCourse/request', methods=['GET', 'POST'])
+@app.route('/createCourse', methods=['GET', 'POST'])
 def createCourse():
     if request.method == 'POST':
         name=""

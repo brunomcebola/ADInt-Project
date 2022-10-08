@@ -90,7 +90,7 @@ app = Flask(__name__)
 def home():
     return "HI"
 
-@app.route('/createEvaluations/request', methods=['GET', 'POST'])
+@app.route('/createEvaluation', methods=['GET', 'POST'])
 def createEvaluations():
     if request.method == 'POST':
         title=""
