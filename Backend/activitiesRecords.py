@@ -89,7 +89,7 @@ def createCourse():
         month=""
         day=""
         description=""
-        result = request.form
+        result = request.json
         print(result)
         for key, value in result.items():
             if key == 'name':

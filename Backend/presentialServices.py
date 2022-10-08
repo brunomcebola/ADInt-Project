@@ -89,7 +89,7 @@ def createService():
         title=""
         description=""
         location = ""
-        result = request.form
+        result = request.json
         print(result)
         for key, value in result.items():
             if key == 'title':
