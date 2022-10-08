@@ -8,6 +8,8 @@ from werkzeug.utils import secure_filename
 import requests
 import json
 
+header = {"Token" : "proxy"}
+
 app = Flask(__name__)
 
 # Services
@@ -15,12 +17,12 @@ app = Flask(__name__)
 @app.route('/createService', methods=['GET', 'POST'])
 def createService():
     dicToSend = {"title":"doProxy", "description":"hello world", "location":"jerusalem"}
-    req = requests.post('http://127.0.0.1:8000/createService',json=dicToSend )
+    req = requests.post('http://127.0.0.1:8000/createService',json=dicToSend, headers=header )
     return req.json()
 
 @app.route('/listServices')
 def getAllServices():
-    req = requests.request('GET', 'http://127.0.0.1:8000/listServices' )
+    req = requests.request('GET', 'http://127.0.0.1:8000/listServices', headers=header )
     return req.json()
 
 # Evaluations
@@ -28,12 +30,12 @@ def getAllServices():
 @app.route('/createEvaluation', methods=['GET', 'POST'])
 def createEvaluation():
     dicToSend = {"title":"doProxy", "description":"hello world", "location":"jerusalem"}
-    req = requests.post('http://127.0.0.1:8003/createEvaluation',json=dicToSend )
+    req = requests.post('http://127.0.0.1:8003/createEvaluation',json=dicToSend, headers=header )
     return req.json()
 
 @app.route('/listEvaluation')
 def getAllEvaluations():
-    req = requests.request('GET', 'http://127.0.0.1:8003/listEvaluations' )
+    req = requests.request('GET', 'http://127.0.0.1:8003/listEvaluations', headers=header )
     return req.json()
 
 # Courses
@@ -41,12 +43,12 @@ def getAllEvaluations():
 @app.route('/createCourse', methods=['GET', 'POST'])
 def createCourse():
     dicToSend = {"title":"doProxy", "description":"hello world", "location":"jerusalem"}
-    req = requests.post('http://127.0.0.1:8001/createCourse',json=dicToSend )
+    req = requests.post('http://127.0.0.1:8001/createCourse',json=dicToSend, headers=header )
     return req.json()
 
 @app.route('/listCourses')
 def getAllCourses():
-    req = requests.request('GET', 'http://127.0.0.1:8001/listCourses' )
+    req = requests.request('GET', 'http://127.0.0.1:8001/listCourses', headers=header )
     return req.json()
 
 # Activities
@@ -54,7 +56,7 @@ def getAllCourses():
 @app.route('/createActivity', methods=['GET', 'POST'])
 def createActivity():
     dicToSend = {"title":"doProxy", "description":"hello world", "location":"jerusalem"}
-    req = requests.post('http://127.0.0.1:8002/createActivity',json=dicToSend )
+    req = requests.post('http://127.0.0.1:8002/createActivity',json=dicToSend, headers=header )
     return req.json()
 
 @app.route('/listActivities')
