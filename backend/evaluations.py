@@ -72,11 +72,6 @@ def newEvaluation(serviceID, rating):
 app = Flask(__name__)
 
 
-@app.route("/")
-def home():
-    return "HI"
-
-
 @app.route("/createEvaluation", methods=["POST"])  # type: ignore
 def createEvaluations():
     if "Token" in request.headers:
@@ -111,9 +106,9 @@ def getAllEvaluations():
             for evaluation in evaluations:
                 myList.append(evaluation.as_dict())
 
-            return flask.Response(status=201)
-        return "Permission Denied", 401
-    return "Header Invalid", 400
+            return myList
+        return get_response(HTTPStatus.UNAUTHORIZED)
+    return get_response(HTTPStatus.PROXY_AUTHENTICATION_REQUIRED)
 
 
 ################################

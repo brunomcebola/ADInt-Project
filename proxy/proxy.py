@@ -23,7 +23,7 @@ def createService():
 
 @app.route("/listServices")
 def getAllServices():
-    req = requests.request("GET", "http://127.0.0.1:3000/listServices", headers=header)
+    req = requests.get("http://127.0.0.1:3000/listServices", headers=header)
     return req.json()
 
 
@@ -39,9 +39,9 @@ def createEvaluation():
     return "Bad Request", 400
 
 
-@app.route("/listEvaluation")
+@app.route("/listEvaluations")
 def getAllEvaluations():
-    req = requests.request("GET", "http://127.0.0.1:8003/listEvaluations", headers=header)
+    req = requests.get("http://127.0.0.1:8003/listEvaluations", headers=header)
     return req.json()
 
 
@@ -57,7 +57,7 @@ def createCourse():
 
 @app.route("/listCourses")
 def getAllCourses():
-    req = requests.request("GET", "http://127.0.0.1:8001/listCourses", headers=header)
+    req = requests.get("http://127.0.0.1:8001/listCourses", headers=header)
     return req.json()
 
 
@@ -73,7 +73,7 @@ def createActivity():
 
 @app.route("/listActivities")
 def getAllActivities():
-    req = requests.request("GET", "http://127.0.0.1:8002/listActivities")
+    req = requests.get("http://127.0.0.1:8002/listActivities")
     return req.json()
 
 
