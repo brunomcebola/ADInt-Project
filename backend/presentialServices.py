@@ -114,14 +114,13 @@ def createService():
 @app.route('/listServices')
 def getAllServices():
     myList = []
-    print(request.headers)
     if "Token" in request.headers:
         if request.headers['Token'] == "proxy":
             services = listServices()
 
             for service in services:
                 myList.append(service.as_dict())
-            print(json.dumps(myList))
+            
             return json.dumps(myList)
 
         return "Permission denied", 401
@@ -133,4 +132,4 @@ def getAllServices():
 
 if __name__ == "__main__":
     
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    app.run(host='0.0.0.0', port=3000, debug=True)
