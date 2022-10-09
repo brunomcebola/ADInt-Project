@@ -30,11 +30,13 @@ def getAllServices():
 # Evaluations
 
 
-@app.route("/createEvaluation", methods=["GET", "POST"])
+@app.route("/createEvaluation", methods=["POST"])
 def createEvaluation():
-    dicToSend = {"title": "doProxy", "description": "hello world", "location": "jerusalem"}
-    req = requests.post("http://127.0.0.1:8003/createEvaluation", json=dicToSend, headers=header)
-    return req.json()
+    if request.json:
+        req = requests.post("http://127.0.0.1:8003/createEvaluation", json=request.json, headers=header)
+        return req.json(), req.status_code
+
+    return "Bad Request", 400
 
 
 @app.route("/listEvaluation")

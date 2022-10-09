@@ -16,14 +16,19 @@ def services():
     return render_template("listServices.html", services=services)
 
 
-@app.route("/service/create", methods=["POST", "GET"])
+@app.route("/service/create", methods=["GET", "POST"])
 def createService():
     if request.method == "POST":
         response = requests.post("http://127.0.0.1:5000/createService", json=request.form).json()
 
-        return response
+        return "Serviço criado com sucesso"
     else:
         return render_template("createService.html")
+
+
+@app.route("/service/<path:serviceID>/evaluations")
+def serviceEvaluations(serviceID):
+    return serviceID
 
 
 if __name__ == "__main__":

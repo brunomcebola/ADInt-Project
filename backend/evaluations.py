@@ -1,8 +1,10 @@
 from email import message
 from fileinput import filename
-from multiprocessing import context
-from flask import Flask, request, send_from_directory, redirect, url_for
+from flask import Flask, request, send_from_directory, redirect, url_for, jsonify
 from werkzeug.utils import secure_filename
+
+from http import HTTPStatus
+
 
 import requests
 import json
@@ -19,37 +21,36 @@ from sqlalchemy.orm import sessionmaker
 from os import path
 
 
-#SLQ access layer initialization
+def get_response(code):
+    return jsonify(code.phrase), code.value
+
+
+# SLQ access layer initialization
 DATABASE_FILE = "./Databases/EvaluationDB.sqlite"
 db_exists = False
 if path.exists(DATABASE_FILE):
     db_exists = True
     print("\t WARNING: DATABASE ALREADY EXISTS ")
 
-engine = create_engine('sqlite:///%s'%(DATABASE_FILE), echo=False) #echo = True shows all SQL calls
+engine = create_engine("sqlite:///%s" % (DATABASE_FILE), echo=False)  # echo = True shows all SQL calls
 
 Base = declarative_base()
 
-#Declaration of data
+# Declaration of data
 class Evaluation(Base):
-    __tablename__ = 'evaluation'
-    id = Column(Integer, primary_key=True) 
-    title = Column(String) # Title of the Serice. Example: Bar de Civil
-    rating = Column(Integer) # Rating. Example: 2
-    
-    
+    __tablename__ = "evaluation"
+    id = Column(Integer, primary_key=True)
+    serviceID = Column(Integer)
+    rating = Column(Integer)
+
     def __repr__(self):
-        return "<Evaluation(id=%d title='%s', rating='%s')>" % (
-                                self.id, self.title, self.rating)
+        return "<Evaluation(id=%d title='%s', rating='%s')>" % (self.id, self.title, self.rating)
+
     def as_dict(self):
-        return {
-            c.name: getattr(self, c.name) for c in self.__table__.columns
-        }
-    
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
-
-Base.metadata.create_all(engine) #Create tables for the data models
+Base.metadata.create_all(engine)  # Create tables for the data models
 
 Session = sessionmaker(bind=engine)
 session = Session()
@@ -58,27 +59,11 @@ session = Session()
 def listEvaluations():
     return session.query(Evaluation).all()
 
-def newEvaluation(title , rating):
-    auth = Evaluation(title = title, rating=rating)
-    session.add(auth)
+
+def newEvaluation(serviceID, rating):
+    eval = Evaluation(serviceID = serviceID, rating = rating)
+    session.add(eval)
     session.commit()
-"""
-if __name__ == "__main__":
-
-    if not db_exists:
-        newEvaluation("Cantina" ,3 )
-        newEvaluation("Campo" , 4)
-        newEvaluation("Secretaria" ,2)
-      
-    #queries
-    print("\nAll Services")
-
-    mylist = listServices()
-    for a in mylist:
-        print(a.as_dict())
-    
-    print(listServices())
-"""
 
 
 ################################
@@ -86,39 +71,39 @@ if __name__ == "__main__":
 
 app = Flask(__name__)
 
+
 @app.route("/")
 def home():
     return "HI"
 
-@app.route('/createEvaluation', methods=['GET', 'POST'])
+
+@app.route("/createEvaluation", methods=["POST"])  # type: ignore
 def createEvaluations():
-    if request.method == 'POST':
-        if "Token" in request.headers:
-            if request.headers['Token'] == "proxy":
-                title=""
-                rating=""
-                result = request.json
-                print(result)
-                for key, value in result.items():
-                    if key == 'title':
-                        title = value
-                    if key == 'rating':
-                        rating = value
-                    
-                if title == "" and rating == "":
-                    return "You didn't put anything", 400
-                
-                #create Service
-                newEvaluation(title=title,rating=rating)
+    if "Token" in request.headers:
+        if request.headers["Token"] == "proxy":
+            if request.json:
+                info = {"serviceID": None, "rating": None}
 
-                return result , 200
-            return "Permission Denied", 401
-        return "Header Invalid", 400
+                for key in request.json:
+                    info[key] = request.json[key]
 
-@app.route('/listEvaluations')
+                if None in info.values():
+                    return get_response(HTTPStatus.BAD_REQUEST)
+
+                # create Service
+                newEvaluation(info["serviceID"], info["rating"])
+
+                return get_response(HTTPStatus.CREATED)
+
+            return get_response(HTTPStatus.BAD_REQUEST)
+        return get_response(HTTPStatus.UNAUTHORIZED)
+    return get_response(HTTPStatus.PROXY_AUTHENTICATION_REQUIRED)
+
+
+@app.route("/listEvaluations")
 def getAllEvaluations():
     if "Token" in request.headers:
-        if request.headers['Token'] == "proxy":
+        if request.headers["Token"] == "proxy":
             myList = []
 
             evaluations = listEvaluations()
@@ -126,7 +111,7 @@ def getAllEvaluations():
             for evaluation in evaluations:
                 myList.append(evaluation.as_dict())
 
-            return myList, 200
+            return flask.Response(status=201)
         return "Permission Denied", 401
     return "Header Invalid", 400
 
@@ -136,7 +121,5 @@ def getAllEvaluations():
 
 
 if __name__ == "__main__":
-    
-    app.run(host='0.0.0.0', port=8003, debug=True)
 
-  
+    app.run(host="0.0.0.0", port=8003, debug=True)
