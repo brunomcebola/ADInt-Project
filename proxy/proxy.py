@@ -2,7 +2,7 @@ from email import message
 from fileinput import filename
 from multiprocessing import context
 from operator import methodcaller
-from flask import Flask, request, send_from_directory, redirect, url_for, render_template
+from flask import Flask, request, jsonify, redirect, url_for, render_template
 from werkzeug.utils import secure_filename
 
 import requests
@@ -44,6 +44,17 @@ def getAllEvaluations():
     req = requests.get("http://127.0.0.1:8003/listEvaluations", headers=header)
     return req.json()
 
+@app.route("/listEvaluations/<serviceID>")
+def getEvaluationsService(serviceID):
+    req = requests.get("http://127.0.0.1:8003/listEvaluations", headers=header)
+
+    evaluations = []
+    
+    for evaluation in req.json():
+        if str(evaluation['serviceID']) == serviceID:
+            print(evaluation['serviceID'])
+            evaluations.append(evaluation)
+    return jsonify(evaluations)
 
 # Courses
 
