@@ -33,8 +33,16 @@ def getAllServices():
 @app.route("/createEvaluation", methods=["POST"])
 def createEvaluation():
     if request.json:
-        req = requests.post("http://127.0.0.1:8003/createEvaluation", json=request.json, headers=header)
-        return req.json(), req.status_code
+        services = requests.get("http://127.0.0.1:3000/listServices", headers=header)
+        eval = request.json
+        for service in services.json():
+
+            if str(service['id']) == str(eval['serviceID']):
+                if eval['rating'] < 1 or eval['rating'] > 5:
+                    return "Bad request, Invalid input, that rating is not possible", 400
+                req = requests.post("http://127.0.0.1:8003/createEvaluation", json=request.json, headers=header)
+                return req.json(), req.status_code
+        return "Service does not exist", 406
 
     return "Bad Request", 400
 
