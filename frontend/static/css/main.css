@@ -10,3 +10,7 @@ th {
   text-align: left;
   padding: 8px;
 }
+
+#create-service-form .mandatory-mark {
+  color: red;
+}

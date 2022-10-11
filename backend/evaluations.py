@@ -1,71 +1,52 @@
-from email import message
-from fileinput import filename
-from flask import Flask, request, send_from_directory, redirect, url_for, jsonify
-from werkzeug.utils import secure_filename
-
 from http import HTTPStatus
-
-
-import requests
-import json
-
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String
-
-from sqlalchemy import inspect
-
-import json
-import datetime
+from datetime import datetime
 from sqlalchemy.orm import sessionmaker
-from os import path
+from flask import Flask, request, jsonify
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import create_engine, Column, Integer, String, DateTime
 
 from auxFunctions import *
 
+# read and validate configurations
+config_file = "./config/evaluations.yaml"
 
-def get_response(code):
-    return jsonify(code.phrase), code.value
+configs = read_yaml(config_file)
 
+validate_yaml(configs, ["db_path", "db_name", "host", "port"], config_file)
 
-# SLQ access layer initialization
-DATABASE_FILE = "./Databases/EvaluationDB.sqlite"
-db_exists = False
-if path.exists(DATABASE_FILE):
-    db_exists = True
-    print("\t WARNING: DATABASE ALREADY EXISTS ")
+# create DB and table
+DATABASE_FILE = configs["db_path"].rstrip("/") + "/" + configs["db_name"] + ".sqlite"
 
 engine = create_engine("sqlite:///%s" % (DATABASE_FILE), echo=False)  # echo = True shows all SQL calls
 
 Base = declarative_base()
 
-# Declaration of data
+
 class Evaluation(Base):
     __tablename__ = "evaluation"
     id = Column(Integer, primary_key=True)
-    serviceID = Column(Integer)
+    service_id = Column(Integer)
     rating = Column(Integer)
+    description = Column(String)
+    datetime = Column(DateTime)
 
     def __repr__(self):
-        return "<Evaluation(id=%d title='%s', rating='%s')>" % (self.id, self.title, self.rating)
+        return "<Evaluation(id=%d, service_id='%d', rating='%d', description='%s', timestamp='%s')>" % (
+            self.id,
+            self.service_id,
+            self.rating,
+            self.description,
+            str(self.datetime),
+        )
 
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
-Base.metadata.create_all(engine)  # Create tables for the data models
+Base.metadata.create_all(engine)
 
 Session = sessionmaker(bind=engine)
 session = Session()
-
-
-def listEvaluations():
-    return session.query(Evaluation).all()
-
-
-def newEvaluation(serviceID, rating):
-    eval = Evaluation(serviceID=serviceID, rating=rating)
-    session.add(eval)
-    session.commit()
 
 
 ################################
@@ -79,40 +60,73 @@ def before_request():
     return check_auth_token()
 
 
-@app.route("/createEvaluation", methods=["POST"])  # type: ignore
-def createEvaluations():
+@app.route("/evaluations")
+def get_evaluations():
+    evaluations = session.query(Evaluation).all()
 
-    if request.json:
-        info = {"serviceID": None, "rating": None}
+    myList = []
+    for evaluation in evaluations:
+        myList.append(evaluation.as_dict())
 
-        for key in request.json:
-            info[key] = request.json[key]
+    return jsonify(myList)
+
+
+@app.route("/evaluation/<id>", methods=["GET", "DELETE"])
+def get_and_delete_evaluation(id):
+    if request.method == "GET":
+        evaluation = session.query(Evaluation).get(id)
+
+        if evaluation:
+            return jsonify(evaluation.as_dict())
+
+        return jsonify("Not Found"), 404
+
+    else:
+        evaluation = session.query(Evaluation).get(id)
+        session.delete(evaluation)
+        session.commit()
+
+        return jsonify("OK"), 200
+
+
+@app.route("/evaluations/service/<service_id>")
+def get_service_evaluations(service_id):
+    evaluations = session.query(Evaluation).filter(Evaluation.service_id == service_id)
+
+    myList = []
+    for evaluation in evaluations:
+        myList.append(evaluation.as_dict())
+
+    return jsonify(myList)
+
+
+@app.route("/evaluation/create", methods=["POST"])  # type: ignore
+def create_evaluation():
+    if request.is_json and request.data:
+        info = {"service_id": None, "rating": None, "description": None}
+
+        for key in request.json:  # type: ignore
+            if key in info:
+                info[key] = request.json[key]  # type: ignore
+            else:
+                return jsonify("Bad Request"), 400
 
         if None in info.values():
-            return get_response(HTTPStatus.BAD_REQUEST)
+            return jsonify("Bad Request"), 400
 
-        # create Service
-        newEvaluation(info["serviceID"], info["rating"])
+        if info["rating"] < 1 or info["rating"] > 5:  # type: ignore
+            return jsonify("Bad request"), 400
 
-        return get_response(HTTPStatus.CREATED)
+        # create evaluation
+        evaluation = Evaluation(
+            service_id=info["service_id"], rating=info["rating"], description=info["description"], datetime=datetime.now()
+        )
+        session.add(evaluation)
+        session.commit()
 
-    return get_response(HTTPStatus.BAD_REQUEST)
+        return jsonify("Created"), 201
 
-
-@app.route("/listEvaluations")
-def getAllEvaluations():
-    if "Token" in request.headers:
-        if request.headers["Token"] == "proxy":
-            myList = []
-
-            evaluations = listEvaluations()
-
-            for evaluation in evaluations:
-                myList.append(evaluation.as_dict())
-
-            return myList
-        return get_response(HTTPStatus.UNAUTHORIZED)
-    return get_response(HTTPStatus.PROXY_AUTHENTICATION_REQUIRED)
+    return jsonify("Bad Request"), 400
 
 
 ################################
@@ -120,5 +134,4 @@ def getAllEvaluations():
 
 
 if __name__ == "__main__":
-
-    app.run(host="0.0.0.0", port=8003, debug=True)
+    app.run(host=configs["host"], port=configs["port"], debug=True)

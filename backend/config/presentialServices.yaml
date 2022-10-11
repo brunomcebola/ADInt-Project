@@ -1,1 +1,4 @@
-db_name: "PresentialServicesDB"
+db_path: ./Databases/
+db_name: PresentialServicesDB
+host: 0.0.0.0
+port: 3000

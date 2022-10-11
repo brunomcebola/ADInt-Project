@@ -1,68 +1,104 @@
-from email import message
-from fileinput import filename
-from multiprocessing import context
-from operator import methodcaller
-from flask import Flask, request, jsonify, redirect, url_for, render_template
-from werkzeug.utils import secure_filename
+from flask import Flask, request, jsonify
 
 import requests
-import json
+
+from auxFunctions import *
 
 header = {"Token": "proxy"}
+
+# read and validate configurations
+config_file = "./config.yaml"
+
+configs = read_yaml(config_file)
+
+validate_yaml(configs, ["host", "port", "ps_host", "ps_port", "e_host", "e_port"], config_file)
+
+services_url = "http://%s:%s" % (configs["ps_host"], configs["ps_port"])
+evaluations_url = "http://%s:%s" % (configs["e_host"], configs["e_port"])
 
 app = Flask(__name__)
 
 # Services
 
 
-@app.route("/createService", methods=["POST"])
-def createService():
-    req = requests.post("http://127.0.0.1:3000/createService", json=request.json, headers=header)
-    return req.json()
+@app.route("/services")
+def get_services():
+    req = requests.get("%s/services" % services_url, headers=header)
+    return req.json(), req.status_code
 
 
-@app.route("/listServices")
-def getAllServices():
-    req = requests.get("http://127.0.0.1:3000/listServices", headers=header)
-    return req.json()
+@app.route("/service/<service_id>", methods=["GET"])
+def get_service(service_id):
+    req = requests.get("%s/service/%s" % (services_url, service_id), headers=header)
+    return req.json(), req.status_code
+
+
+@app.route("/service/<service_id>", methods=["DELETE"])
+def delete_service(service_id):
+    req = requests.delete("%s/service/%s" % (services_url, service_id), headers=header)
+    return req.json(), req.status_code
+
+
+@app.route("/service/<service_id>/evaluations")
+def get_service_evaluations(service_id):
+    req = requests.get("%s/service/%s" % (services_url, service_id), headers=header)
+
+    if req.status_code != 200:
+        return req.json(), req.status_code
+
+    req = requests.get("%s/evaluations/service/%s" % (evaluations_url, service_id), headers=header)
+
+    return req.json(), req.status_code
+
+
+@app.route("/service/create", methods=["POST"])
+def create_service():
+    if request.is_json and request.data:
+        req = requests.post("%s/service/create" % services_url, json=request.json, headers=header)
+        return req.json(), req.status_code
+
+    return jsonify("Bad Request"), 400
 
 
 # Evaluations
 
 
-@app.route("/createEvaluation", methods=["POST"])
-def createEvaluation():
-    if request.json:
-        services = requests.get("http://127.0.0.1:3000/listServices", headers=header)
-        eval = request.json
-        for service in services.json():
-
-            if str(service['id']) == str(eval['serviceID']):
-                if eval['rating'] < 1 or eval['rating'] > 5:
-                    return "Bad request, Invalid input, that rating is not possible", 400
-                req = requests.post("http://127.0.0.1:8003/createEvaluation", json=request.json, headers=header)
-                return req.json(), req.status_code
-        return "Service does not exist", 406
-
-    return "Bad Request", 400
-
-
-@app.route("/listEvaluations")
-def getAllEvaluations():
-    req = requests.get("http://127.0.0.1:8003/listEvaluations", headers=header)
+@app.route("/evaluations")
+def get_evaluations():
+    req = requests.get("%s/evaluations" % evaluations_url, headers=header)
     return req.json()
 
-@app.route("/listEvaluations/<serviceID>")
-def getEvaluationsService(serviceID):
-    req = requests.get("http://127.0.0.1:8003/listEvaluations", headers=header)
 
-    evaluations = []
-    
-    for evaluation in req.json():
-        if str(evaluation['serviceID']) == serviceID:
-            print(evaluation['serviceID'])
-            evaluations.append(evaluation)
-    return jsonify(evaluations)
+@app.route("/evaluation/<evaluation_id>", methods=["GET"])
+def get_evaluation(evaluation_id):
+    req = requests.get("%s/evaluation/%s" % (evaluations_url, evaluation_id), headers=header)
+    return req.json(), req.status_code
+
+
+@app.route("/evaluation/<evaluation_id>", methods=["DELETE"])
+def delete_evaluation(evaluation_id):
+    req = requests.delete("%s/evaluation/%s" % (evaluations_url, evaluation_id), headers=header)
+    return req.json(), req.status_code
+
+
+@app.route("/evaluation/create", methods=["POST"])
+def create_evaluation():
+    if request.is_json and request.json:
+
+        if "service_id" not in request.json:
+            return jsonify("Bad Request"), 400
+
+        req = requests.get("%s/service/%s" % (services_url, request.json["service_id"]), headers=header)
+
+        if req.status_code != 200:
+            return req.json(), req.status_code
+
+        req = requests.post("%s/evaluation/create" % evaluations_url, json=request.json, headers=header)
+
+        return req.json(), req.status_code
+
+    return jsonify("Bad Request"), 400
+
 
 # Courses
 
@@ -101,5 +137,4 @@ def getAllActivities():
 
 
 if __name__ == "__main__":
-
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host=configs["host"], port=configs["port"], debug=True)

@@ -1,0 +1,30 @@
+{% extends 'layout.html' %} {% block content %}
+<h3>Evaluations</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Service ID</th>
+      <th>Rating</th>
+      <th>Description</th>
+      <th>Datetime</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for evaluation in evaluations %}
+    <tr>
+      <th>{{evaluation.id}}</th>
+      <th>{{evaluation.service_id}}</th>
+      <th>{{evaluation.rating}}</th>
+      <th>{{evaluation.description}}</th>
+      <th>{{evaluation.datetime}}</th>
+      <th>
+        <a href={{"/evaluation/%d/delete" % evaluation.id}}><button>Delete evaluation</button></a>
+      </th>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
