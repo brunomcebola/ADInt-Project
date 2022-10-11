@@ -20,6 +20,8 @@ import datetime
 from sqlalchemy.orm import sessionmaker
 from os import path
 
+from auxFunctions import *
+
 
 def get_response(code):
     return jsonify(code.phrase), code.value
@@ -61,7 +63,7 @@ def listEvaluations():
 
 
 def newEvaluation(serviceID, rating):
-    eval = Evaluation(serviceID = serviceID, rating = rating)
+    eval = Evaluation(serviceID=serviceID, rating=rating)
     session.add(eval)
     session.commit()
 
@@ -72,27 +74,29 @@ def newEvaluation(serviceID, rating):
 app = Flask(__name__)
 
 
+@app.before_request
+def before_request():
+    return check_auth_token()
+
+
 @app.route("/createEvaluation", methods=["POST"])  # type: ignore
 def createEvaluations():
-    if "Token" in request.headers:
-        if request.headers["Token"] == "proxy":
-            if request.json:
-                info = {"serviceID": None, "rating": None}
 
-                for key in request.json:
-                    info[key] = request.json[key]
+    if request.json:
+        info = {"serviceID": None, "rating": None}
 
-                if None in info.values():
-                    return get_response(HTTPStatus.BAD_REQUEST)
+        for key in request.json:
+            info[key] = request.json[key]
 
-                # create Service
-                newEvaluation(info["serviceID"], info["rating"])
-
-                return get_response(HTTPStatus.CREATED)
-
+        if None in info.values():
             return get_response(HTTPStatus.BAD_REQUEST)
-        return get_response(HTTPStatus.UNAUTHORIZED)
-    return get_response(HTTPStatus.PROXY_AUTHENTICATION_REQUIRED)
+
+        # create Service
+        newEvaluation(info["serviceID"], info["rating"])
+
+        return get_response(HTTPStatus.CREATED)
+
+    return get_response(HTTPStatus.BAD_REQUEST)
 
 
 @app.route("/listEvaluations")

@@ -1,135 +1,120 @@
-from email import message
-from fileinput import filename
-from multiprocessing import context
-from operator import methodcaller
-from flask import Flask, request, send_from_directory, redirect, url_for, render_template
-from werkzeug.utils import secure_filename
-
-import requests
 import json
 
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String
-
-from sqlalchemy import inspect
-
-from sqlalchemy.orm import sessionmaker
 from os import path
+from flask import Flask, request, jsonify
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String, create_engine
+
+from auxFunctions import *
+
+# read and validate configurations
+general_configurations_file = "./config/general.yaml"
+general_configurations = None
+
+specific_configurations_file = "./config/presentialServices.yaml"
+specific_configurations = None
+
+general_configurations = read_yaml(general_configurations_file)
+specific_configurations = read_yaml(specific_configurations_file)
+
+validate_yaml(general_configurations, ["base_path"], general_configurations_file)
+validate_yaml(specific_configurations, ["db_name"], specific_configurations_file)
 
 
-#SLQ access layer initialization
-DATABASE_FILE = "./Databases/PresentialServicesDB.sqlite"
-db_exists = False
-if path.exists(DATABASE_FILE):
-    db_exists = True
-    print("\t WARNING: DATABASE ALREADY EXISTS ")
+# create DB and table
+DATABASE_FILE = general_configurations["base_path"].rstrip("/") + "/" + specific_configurations["db_name"] + ".sqlite"
 
-engine = create_engine('sqlite:///%s'%(DATABASE_FILE), 
-                        connect_args={'check_same_thread': False},
-                        echo=False) #echo = True shows all SQL calls
+engine = create_engine("sqlite:///%s" % (DATABASE_FILE), connect_args={"check_same_thread": False}, echo=False)
 
 Base = declarative_base()
 
-#Declaration of data
-class Presencial_Services(Base):
-    __tablename__ = 'presencial_services'
-    id = Column(Integer, primary_key=True) 
-    title = Column(String) # Title of the Serice. Example: Bar de Civil
-    description = Column(String) # Desciption. Example: Sells food and drinks
-    location = Column(String) # Location of the Serice. Example: Civil's Building
-    
-    def __repr__(self):
-        return "<Presencial_Services(id=%d title='%s', description='%s', location=%s)>" % (
-                                self.id, self.title, self.description, self.location)
-    def as_dict(self):
-        return {
-            c.name: getattr(self, c.name) for c in self.__table__.columns
-        }
 
-Base.metadata.create_all(engine) #Create tables for the data models
+class Presencial_Services(Base):
+    __tablename__ = "presencial_services"
+    id = Column(Integer, primary_key=True)
+    name = Column(String)  # Name of the Service. Example: Bar de Civil
+    description = Column(String)  # Desciption. Example: Sells food and drinks
+    location = Column(String)  # Location of the Serice. Example: Civil's Building
+
+    def __repr__(self):
+        return "<Presencial_Services(id=%d name='%s', description='%s', location=%s)>" % (
+            self.id,
+            self.name,
+            self.description,
+            self.location,
+        )
+
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
+Base.metadata.create_all(engine)
 
 Session = sessionmaker(bind=engine)
 session = Session()
 
-
-def listServices():
+# functions to interact with the DB
+def list_services():
     return session.query(Presencial_Services).all()
 
-def newService(title , description, location):
-    auth = Presencial_Services(title = title, description=description, location=location)
-    session.add(auth)
+
+def create_service(name, description, location):
+    service = Presencial_Services(name=name, description=description, location=location)
+    session.add(service)
     session.commit()
-    
 
-
-if not db_exists:
-    newService("Cantina" , "Vende Comida","Torre de Eletro")
-    newService("Campo" , "Praticar Futsal","Ao pé da secção de folhas")
-    newService("Secretaria" ,"Papelada","Edificio Central")
-        
-#queries
-
-"""
-print("\nAll Services")
-
-mylist = listServices()
-for a in mylist:
-    print(a.as_dict())
-"""
 
 ################################
 ########### FLASK ##############
 
 app = Flask(__name__)
 
-@app.route('/createService', methods=['GET', 'POST'])
+
+@app.before_request
+def before_request():
+    return check_auth_token()
+
+
+@app.route("/service/create", methods=["POST"])  # type: ignore
 def createService():
-    if request.method == 'POST':
-        if "Token" in request.headers:
-            if request.headers['Token'] == "proxy":
-                title=""
-                description=""
-                location = ""
-                result = request.json
-                print(result)
-                for key, value in result.items():
-                    if key == 'title':
-                        title = value
-                    if key == 'description':
-                        description = value
-                    if key == 'location':
-                        location = value
-                    
-                if title == "" and description == "" and location == "":
-                    return "You didn't put anything", 400
-                
-                #create Service
-                newService(title=title,description=description, location=location)
 
-                return result, 200
-            return "Permission denied", 401
-        return "Headers Invalid", 400
+    if request.json:
+        info = {"name": None, "description": None, "location": None}
 
-@app.route('/listServices')
+        for key in request.json:
+            if key in info:
+                info[key] = request.json[key]
+            else: 
+                return jsonify("Bad Request 1"), 400
+
+        if None in info.values():
+            return jsonify("Bad Request 2"), 400
+
+        # create Service
+        create_service(info["name"], info["description"], info["location"])
+
+        return jsonify("Created"), 201
+
+    return jsonify("Bad Request 3"), 400
+
+
+@app.route("/services")
 def getAllServices():
     myList = []
-    if "Token" in request.headers:
-        if request.headers['Token'] == "proxy":
-            services = listServices()
 
-            for service in services:
-                myList.append(service.as_dict())
-            
-            return json.dumps(myList)
+    services = list_services()
 
-        return "Permission denied", 401
-    return "Headers Invalid", 400
+    for service in services:
+        myList.append(service.as_dict())
+
+    return json.dumps(myList)
+
 
 ################################
 ############ MAIN ##############
 
 
 if __name__ == "__main__":
-    
-    app.run(host='0.0.0.0', port=3000, debug=True)
+
+    app.run(host="0.0.0.0", port=3000, debug=True)
