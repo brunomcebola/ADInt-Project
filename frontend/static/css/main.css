@@ -11,6 +11,7 @@ th {
   padding: 8px;
 }
 
-#create-service-form .mandatory-mark {
+#create-service-form .mandatory-mark,
+#create-course-form .mandatory-mark {
   color: red;
 }

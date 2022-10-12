@@ -15,15 +15,11 @@ configs = read_yaml(config_file)
 validate_yaml(configs, ["db_path", "db_name", "host", "port"], config_file)
 
 # create DB and table
-DATABASE_FILE = configs["db_path"].rstrip("/") + "/" + configs["db_name"] + ".sqlite"
-
-engine = create_engine("sqlite:///%s" % (DATABASE_FILE), echo=False)  # echo = True shows all SQL calls
-
 Base = declarative_base()
 
 
 class Evaluation(Base):
-    __tablename__ = "evaluation"
+    __tablename__ = "evaluations"
     id = Column(Integer, primary_key=True)
     service_id = Column(Integer)
     rating = Column(Integer)
@@ -42,6 +38,10 @@ class Evaluation(Base):
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
+
+DATABASE_FILE = configs["db_path"].rstrip("/") + "/" + configs["db_name"] + ".sqlite"
+
+engine = create_engine("sqlite:///%s" % (DATABASE_FILE), echo=False)
 
 Base.metadata.create_all(engine)
 
@@ -100,7 +100,7 @@ def get_service_evaluations(service_id):
     return jsonify(myList)
 
 
-@app.route("/evaluation/create", methods=["POST"])  # type: ignore
+@app.route("/evaluation/create", methods=["POST"])
 def create_evaluation():
     if request.is_json and request.data:
         info = {"service_id": None, "rating": None, "description": None}
@@ -117,7 +117,6 @@ def create_evaluation():
         if info["rating"] < 1 or info["rating"] > 5:  # type: ignore
             return jsonify("Bad request"), 400
 
-        # create evaluation
         evaluation = Evaluation(
             service_id=info["service_id"], rating=info["rating"], description=info["description"], datetime=datetime.now()
         )

@@ -14,14 +14,10 @@ validate_yaml(configs, ["db_path", "db_name", "host", "port"], config_file)
 
 
 # create DB and table
-DATABASE_FILE = configs["db_path"].rstrip("/") + "/" + configs["db_name"] + ".sqlite"
-
-engine = create_engine("sqlite:///%s" % (DATABASE_FILE), echo=False)
-
 Base = declarative_base()
 
 
-class Presencial_Services(Base):
+class Presencial_Service(Base):
     __tablename__ = "presencial_services"
     id = Column(Integer, primary_key=True)
     name = Column(String)  # Name of the Service. Example: Bar de Civil
@@ -29,7 +25,7 @@ class Presencial_Services(Base):
     location = Column(String)  # Location of the Serice. Example: Civil's Building
 
     def __repr__(self):
-        return "<Presencial_Services(id=%d name='%s', description='%s', location=%s)>" % (
+        return "<Presencial_Service(id=%d name='%s', description='%s', location=%s)>" % (
             self.id,
             self.name,
             self.description,
@@ -39,6 +35,10 @@ class Presencial_Services(Base):
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
+
+DATABASE_FILE = configs["db_path"].rstrip("/") + "/" + configs["db_name"] + ".sqlite"
+
+engine = create_engine("sqlite:///%s" % (DATABASE_FILE), echo=False)
 
 Base.metadata.create_all(engine)
 
@@ -58,10 +58,9 @@ def before_request():
 
 @app.route("/services")
 def get_services():
+    services = session.query(Presencial_Service).all()
+
     myList = []
-
-    services = session.query(Presencial_Services).all()
-
     for service in services:
         myList.append(service.as_dict())
 
@@ -71,7 +70,7 @@ def get_services():
 @app.route("/service/<id>", methods=["GET", "DELETE"])
 def get_and_delete_service(id):
     if request.method == "GET":
-        service = session.query(Presencial_Services).get(id)
+        service = session.query(Presencial_Service).get(id)
 
         if service:
             return jsonify(service.as_dict())
@@ -79,15 +78,15 @@ def get_and_delete_service(id):
         return jsonify("Not Found"), 404
 
     else:
-        service = session.query(Presencial_Services).get(id)
+        service = session.query(Presencial_Service).get(id)
         session.delete(service)
         session.commit()
 
         return jsonify("OK"), 200
 
 
-@app.route("/service/create", methods=["POST"])  # type: ignore
-def create_Service():
+@app.route("/service/create", methods=["POST"])
+def create_service():
 
     if request.is_json and request.data:
         info = {"name": None, "description": None, "location": None}
@@ -96,19 +95,18 @@ def create_Service():
             if key in info:
                 info[key] = request.json[key]  # type: ignore
             else:
-                return jsonify("Bad Request 1"), 400
+                return jsonify("Bad Request"), 400
 
         if None in info.values():
-            return jsonify("Bad Request 2"), 400
+            return jsonify("Bad Request"), 400
 
-        # create service
-        service = Presencial_Services(name=info["name"], description=info["description"], location=info["location"])
+        service = Presencial_Service(name=info["name"], description=info["description"], location=info["location"])
         session.add(service)
         session.commit()
 
         return jsonify("Created"), 201
 
-    return jsonify("Bad Request 3"), 400
+    return jsonify("Bad Request"), 400
 
 
 ################################

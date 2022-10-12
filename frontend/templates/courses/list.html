@@ -1,0 +1,35 @@
+{% extends 'layout.html' %} {% block content %}
+<h3>Courses</h3>
+
+<a href="/course/create">
+  <button>Create course</button>
+</a>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Professor</th>
+      <th>School year</th>
+      <th>Description</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for course in courses %}
+    <tr>
+      <th>{{course.id}}</th>
+      <th>{{course.name}}</th>
+      <th>{{course.professor}}</th>
+      <th>{{course.school_year}}</th>
+      <th>{{course.description}}</th>
+      <th>
+        <a href={{"/course/%d/attendances" % course.id}}><button>View attendances</button></a>
+        <a href={{"/course/%d/delete" % course.id}}><button>Delete course</button></a>
+      </th>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

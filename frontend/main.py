@@ -25,13 +25,13 @@ def index():
 
 
 @app.route("/services")
-def services():
+def get_services():
     services = requests.get("%s/services" % proxy_url).json()
     return render_template("services/list.html", services=services)
 
 
 @app.route("/service/<service_id>/evaluations")
-def serviceEvaluations(service_id):
+def get_service_evaluations(service_id):
     evaluations = requests.get("%s/service/%s/evaluations" % (proxy_url, service_id)).json()
 
     return render_template("evaluations/list.html", evaluations=evaluations)
@@ -45,7 +45,7 @@ def delete_service(service_id):
 
 
 @app.route("/service/create", methods=["GET", "POST"])
-def createService():
+def create_service():
     if request.method == "POST":
         requests.post("%s/service/create" % proxy_url, json=request.form)
 
@@ -62,6 +62,32 @@ def delete_evaluation(evaluation_id):
     requests.delete("%s/evaluation/%s" % (proxy_url, evaluation_id), json=request.form)
 
     return redirect(request.referrer)
+
+
+# Courses
+
+
+@app.route("/courses")
+def get_courses():
+    courses = requests.get("%s/courses" % proxy_url).json()
+    return render_template("courses/list.html", courses=courses)
+
+
+@app.route("/course/<course_id>/delete")
+def delete_course(course_id):
+    requests.delete("%s/course/%s" % (proxy_url, course_id), json=request.form)
+
+    return redirect(request.referrer)
+
+
+@app.route("/course/create", methods=["GET", "POST"])
+def create_course():
+    if request.method == "POST":
+        requests.post("%s/course/create" % proxy_url, json=request.form)
+
+        return redirect("/courses")
+    else:
+        return render_template("courses/create.html")
 
 
 if __name__ == "__main__":

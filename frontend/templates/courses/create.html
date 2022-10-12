@@ -1,0 +1,34 @@
+{% extends 'layout.html' %} {% block content %}
+<h3>Create course</h3>
+
+<form id="create-course-form" action="/course/create" method="post">
+  <label for="name">Name <span class="mandatory-mark">*</span></label
+  ><br />
+  <input type="text" id="name" name="name" />
+
+  <br /><br />
+
+  <label for="professor">Professor <span class="mandatory-mark">*</span></label
+  ><br />
+  <input type="text" id="professor" name="professor" />
+
+  <br /><br />
+
+  <label for="school_year"
+    >School year <span class="mandatory-mark">*</span></label
+  ><br />
+  <input type="text" id="school_year" name="school_year" />
+
+  <br /><br />
+
+  <label for="description"
+    >Description <span class="mandatory-mark">*</span></label
+  ><br />
+  <textarea id="description" name="description" rows="12" cols="35"></textarea>
+
+  <br /><br />
+
+  <input type="submit" value="Create course" />
+</form>
+
+{% endblock %}

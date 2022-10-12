@@ -1,134 +1,121 @@
-from email import message
-from fileinput import filename
-from multiprocessing import context
-from unicodedata import name
-from flask import Flask, request, send_from_directory, redirect, url_for
-from werkzeug.utils import secure_filename
-
-import requests
-import json
-
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Date
-
-from sqlalchemy import inspect
-
-import json
-import datetime
+from os.path import exists
 from sqlalchemy.orm import sessionmaker
-from os import path
+from flask import Flask, request, jsonify
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String, create_engine
 
+from auxFunctions import *
 
-#SLQ access layer initialization
-DATABASE_FILE = "./Databases/CoursesDB.sqlite"
-db_exists = False
-if path.exists(DATABASE_FILE):
-    db_exists = True
-    print("\t WARNING: DATABASE ALREADY EXISTS ")
+# read and validate configurations
+config_file = "./config/courses.yaml"
 
-engine = create_engine('sqlite:///%s'%(DATABASE_FILE), echo=False) #echo = True shows all SQL calls
+configs = read_yaml(config_file)
 
+validate_yaml(configs, ["db_path", "db_name", "host", "port"], config_file)
+
+# create DB and table
 Base = declarative_base()
 
-#Declaration of data
+
 class Course(Base):
-    __tablename__ = 'course'
-    id = Column(Integer, primary_key=True) 
-    name = Column(String) # Name of the Course. Example: Aplicações Distribuidas da Internet
-    professor = Column(Integer) # Professor. Example: Jnos
-    year = Column(String) # Year. Example: 2022/2023
-    description = Column(String) # Desciption. Example: Learning REST API
-    
-    
+    __tablename__ = "courses"
+    id = Column(Integer, primary_key=True)
+    name = Column(String)  # Name of the Course. Example: Aplicações Distribuidas da Internet
+    professor = Column(String)  # Professor. Example: Jnos
+    school_year = Column(String)  # Year. Example: 2022/2023
+    description = Column(String)  # Desciption. Example: Learning REST API
+
     def __repr__(self):
-        return "<Course(id=%d name='%s', professor='%s', year='%s', description='%s')>" % (
-                                self.id, self.name, self.professor, self.year, self.description)
+        return "<Course(id=%d name='%s', professor='%s', school_year='%s', description='%s')>" % (
+            self.id,
+            self.name,
+            self.professor,
+            self.school_year,
+            self.description,
+        )
+
     def as_dict(self):
-        return {
-            c.name: getattr(self, c.name) for c in self.__table__.columns
-        }
-    
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
+DATABASE_FILE = configs["db_path"].rstrip("/") + "/" + configs["db_name"] + ".sqlite"
 
-Base.metadata.create_all(engine) #Create tables for the data models
+engine = create_engine("sqlite:///%s" % (DATABASE_FILE), echo=False)
+
+Base.metadata.create_all(engine)  # Create tables for the data models
 
 Session = sessionmaker(bind=engine)
 session = Session()
 
-
-def listCourses():
-    return session.query(Course).all()
-
-def newCourse(name,professor , year, description):
-    auth = Course(name = name, professor=professor, year =year, description=description)
-    session.add(auth)
-    session.commit()
-
-if __name__ == "__main__":
-
-    if not db_exists:
-        newCourse("ADINT","Jnos" ,"2022/2023", "Aprender aplicações" )
-        newCourse("CINT","Nuno Horta" ,"2022/2023", "Computação Inteligente" )
-        newCourse("PIC","Pedro Lima" ,"2022/2023", "Preparação da Tese" )
 
 ################################
 ########### FLASK ##############
 
 app = Flask(__name__)
 
-@app.route('/createCourse', methods=['GET', 'POST'])
-def createCourse():
-    if request.method == 'POST':
-        if "Token" in request.headers:
-            if request.headers['Token'] == "proxy":
-                name=""
-                professor=""
-                year = ""
-                description=""
-                result = request.json
-                print(result)
-                for key, value in result.items():
-                    if key == 'name':
-                        name = value
-                    if key == 'professor':
-                        professor = value
-                    if key == 'description':
-                        description = value
-                    if key == 'year':
-                        year = value
-                    
-                if name == "" and description == "" and year == "" and professor=="":
-                    return "You didn't put anything", 400
-                
-                #create Service
-                newCourse(name=name,professor=professor , year=year, description=description)
 
-                return result , 200
-            return "Permission Denied", 401
-        return "Header Invalid", 400
+@app.before_request
+def before_request():
+    return check_auth_token()
 
-@app.route('/listCourses')
-def getAllCourses():
-    if "Token" in request.headers:
-        if request.headers['Token'] == "proxy":
-            myList = []
 
-            courses = listCourses()
+@app.route("/courses")
+def get_courses():
+    courses = session.query(Course).all()
 
-            for course in courses:
-                myList.append(course.as_dict())
+    myList = []
+    for course in courses:
+        myList.append(course.as_dict())
 
-            return myList, 200
-        return "Permission Denied", 401
-    return "Header Invalid", 400
+    return jsonify(myList)
+
+
+@app.route("/course/<id>", methods=["GET", "DELETE"])
+def get_and_delete_course(id):
+    if request.method == "GET":
+        course = session.query(Course).get(id)
+
+        if course:
+            return jsonify(course.as_dict())
+
+        return jsonify("Not Found"), 404
+
+    else:
+        course = session.query(Course).get(id)
+        session.delete(course)
+        session.commit()
+
+        return jsonify("OK"), 200
+
+
+@app.route("/course/create", methods=["POST"])
+def create_course():
+
+    if request.is_json and request.data:
+        info = {"name": None, "professor": None, "school_year": None, "description": None}
+
+        for key in request.json:  # type: ignore
+            if key in info:
+                info[key] = request.json[key]  # type: ignore
+            else:
+                return jsonify("Bad Request"), 400
+
+        if None in info.values():
+            return jsonify("Bad Request"), 400
+
+        course = Course(
+            name=info["name"], professor=info["professor"], school_year=info["school_year"], description=info["description"]
+        )
+        session.add(course)
+        session.commit()
+
+        return jsonify("Created"), 201
+
+    return jsonify("Bad Request"), 400
 
 
 ################################
 ############ MAIN ##############
 
-
 if __name__ == "__main__":
-    
-    app.run(host='0.0.0.0', port=8001, debug=True)
+    app.run(host=configs["host"], port=configs["port"], debug=True)

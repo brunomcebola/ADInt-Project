@@ -11,10 +11,11 @@ config_file = "./config.yaml"
 
 configs = read_yaml(config_file)
 
-validate_yaml(configs, ["host", "port", "ps_host", "ps_port", "e_host", "e_port"], config_file)
+validate_yaml(configs, ["host", "port", "ps_host", "ps_port", "e_host", "e_port", "c_host", "c_port"], config_file)
 
 services_url = "http://%s:%s" % (configs["ps_host"], configs["ps_port"])
 evaluations_url = "http://%s:%s" % (configs["e_host"], configs["e_port"])
+courses_url = "http://%s:%s" % (configs["c_host"], configs["c_port"])
 
 app = Flask(__name__)
 
@@ -83,12 +84,12 @@ def delete_evaluation(evaluation_id):
 
 @app.route("/evaluation/create", methods=["POST"])
 def create_evaluation():
-    if request.is_json and request.json:
+    if request.is_json and request.data:
 
-        if "service_id" not in request.json:
+        if "service_id" not in request.json:  # type: ignore
             return jsonify("Bad Request"), 400
 
-        req = requests.get("%s/service/%s" % (services_url, request.json["service_id"]), headers=header)
+        req = requests.get("%s/service/%s" % (services_url, request.json["service_id"]), headers=header)  # type: ignore
 
         if req.status_code != 200:
             return req.json(), req.status_code
@@ -103,17 +104,31 @@ def create_evaluation():
 # Courses
 
 
-@app.route("/createCourse", methods=["GET", "POST"])
-def createCourse():
-    dicToSend = {"title": "doProxy", "description": "hello world", "location": "jerusalem"}
-    req = requests.post("http://127.0.0.1:8001/createCourse", json=dicToSend, headers=header)
-    return req.json()
+@app.route("/courses")
+def get_courses():
+    req = requests.get("%s/courses" % courses_url, headers=header)
+    return req.json(), req.status_code
 
 
-@app.route("/listCourses")
-def getAllCourses():
-    req = requests.get("http://127.0.0.1:8001/listCourses", headers=header)
-    return req.json()
+@app.route("/course/<course_id>", methods=["GET"])
+def get_course(course_id):
+    req = requests.get("%s/course/%s" % (courses_url, course_id), headers=header)
+    return req.json(), req.status_code
+
+
+@app.route("/course/<course_id>", methods=["DELETE"])
+def delete_course(course_id):
+    req = requests.delete("%s/course/%s" % (courses_url, course_id), headers=header)
+    return req.json(), req.status_code
+
+
+@app.route("/course/create", methods=["POST"])
+def create_course():
+    if request.is_json and request.data:
+        req = requests.post("%s/course/create" % courses_url, json=request.json, headers=header)
+        return req.json(), req.status_code
+
+    return jsonify("Bad Request"), 400
 
 
 # Activities
