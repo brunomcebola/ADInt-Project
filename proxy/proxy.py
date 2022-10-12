@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 
 import requests
 
-from auxFunctions import *
+from proxy.aux_functions import *
 
 header = {"Token": "proxy"}
 

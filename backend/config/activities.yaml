@@ -1,0 +1,35 @@
+db_path: ./Databases/
+db_name: ActivitiesDB
+host: 0.0.0.0
+port: 3003
+
+activities:
+  Personal:
+    Sleep:
+      value: Sleep
+      external: no
+    Eat:
+      value: Eat
+      external: no
+    Leisure:
+      value: Leisure
+      external: no
+    Sports:
+      value: Sports
+      external: no
+    Other:
+      value: Other
+      external: no
+
+  Academic:
+    Attend classes:
+      value: Attend classes
+      external: yes
+    Study:
+      value: Study
+      external: no
+
+  Administrative:
+    Presential service:
+      value: Presential service
+      external: yes

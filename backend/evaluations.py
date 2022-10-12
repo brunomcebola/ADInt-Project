@@ -1,11 +1,10 @@
-from http import HTTPStatus
 from datetime import datetime
 from sqlalchemy.orm import sessionmaker
 from flask import Flask, request, jsonify
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine, Column, Integer, String, DateTime
 
-from auxFunctions import *
+from aux_functions import *
 
 # read and validate configurations
 config_file = "./config/evaluations.yaml"
@@ -27,7 +26,7 @@ class Evaluation(Base):
     datetime = Column(DateTime)
 
     def __repr__(self):
-        return "<Evaluation(id=%d, service_id='%d', rating='%d', description='%s', timestamp='%s')>" % (
+        return "<Evaluation(id=%d, service_id='%d', rating='%d', description='%s', datetime='%s')>" % (
             self.id,
             self.service_id,
             self.rating,

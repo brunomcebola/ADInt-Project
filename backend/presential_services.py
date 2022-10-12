@@ -1,9 +1,9 @@
 from sqlalchemy.orm import sessionmaker
 from flask import Flask, request, jsonify
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, create_engine
+from sqlalchemy import create_engine, Column, Integer, String
 
-from auxFunctions import *
+from aux_functions import *
 
 # read and validate configurations
 config_file = "./config/presentialServices.yaml"

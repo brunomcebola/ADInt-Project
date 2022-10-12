@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, send_from_directory, redirect, url_for
 import requests
 
-from auxFunctions import *
+from frontend.aux_functions import *
 
 # read and validate configurations
 config_file = "./config.yaml"
