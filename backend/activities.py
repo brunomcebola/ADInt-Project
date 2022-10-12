@@ -78,10 +78,10 @@ def get_activities_types():
     return jsonify(configs["activities"]), 200
 
 
-@app.route("/activity/<id>", methods=["GET", "DELETE"])
-def get_and_delete_course(id):
+@app.route("/activity/<activity_id>", methods=["GET", "DELETE"])
+def get_and_delete_activity(activity_id):
     if request.method == "GET":
-        activity = session.query(Activity).get(id)
+        activity = session.query(Activity).get(activity_id)
 
         if activity:
             return jsonify(activity.as_dict())
@@ -89,7 +89,7 @@ def get_and_delete_course(id):
         return jsonify("Not Found"), 404
 
     else:
-        activity = session.query(Activity).get(id)
+        activity = session.query(Activity).get(activity_id)
         session.delete(activity)
         session.commit()
 
@@ -97,7 +97,7 @@ def get_and_delete_course(id):
 
 
 @app.route("/activity/create", methods=["POST"])
-def create_course():
+def create_activity():
     if request.is_json and request.data:
         info = {"name": None, "type": None, "external_id": None, "description": None, "start_time": None, "stop_time": None}
 
@@ -136,6 +136,57 @@ def create_course():
         return jsonify("Created"), 201
 
     return jsonify("Bad Request"), 400
+
+
+@app.route("/activity/start", methods=["POST"])
+def start_activity():
+    if request.is_json and request.data:
+        info = {"name": None, "type": None, "external_id": None, "description": None}
+
+        for key in request.json:  # type: ignore
+            if key in info:
+                info[key] = request.json[key]  # type: ignore
+            else:
+                return jsonify("Bad Request"), 400
+
+        if None in info.values():
+            return jsonify("Bad Request"), 400
+
+        # TODO: check if activity type exists
+
+        if configs["activities"][info["type"]][info["name"]]["external"]:
+            course = Activity(
+                name=info["name"],
+                type=info["type"],
+                external_id=info["external_id"],
+                description=info["description"],
+                start_time=datetime.now(),  # type: ignore
+            )
+        else:
+            course = Activity(
+                name=info["name"],
+                type=info["type"],
+                description=info["description"],
+                start_time=datetime.now(),  # type: ignore
+            )
+
+        session.add(course)
+        session.commit()
+
+        return jsonify("Created"), 201
+
+    return jsonify("Bad Request"), 400
+
+
+@app.route("/activity/<activity_id>/stop", methods=["PUT"])
+def stop_activity(activity_id):
+    activity = session.query(Activity).get(activity_id)
+
+    setattr(activity, "stop_time", datetime.now())
+
+    session.commit()
+
+    return "OK", 200
 
 
 ################################
