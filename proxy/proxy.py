@@ -128,7 +128,7 @@ def delete_course(course_id):
 
 
 @app.route("/course/create", methods=["POST"])
-def create_course():    
+def create_course():
     if request.is_json and request.data:
         req = requests.post("%s/course/create" % courses_url, json=request.json, headers=header)
         return req.json(), req.status_code
@@ -151,6 +151,16 @@ def get_activities_types():
     return req.json(), req.status_code
 
 
+@app.route("/activities/filter", methods=["POST"])
+def get_filtered_activities():
+    if request.is_json and request.data:        
+        req = requests.post("%s/activities/filter" % activities_url, json=request.json, headers=header)
+
+        return req.json(), req.status_code
+
+    return jsonify("Bad Request"), 400
+
+
 @app.route("/activity/<activity_id>", methods=["GET"])
 def get_activity(activity_id):
     req = requests.get("%s/activity/%s" % (activities_url, activity_id), headers=header)
@@ -170,7 +180,7 @@ def create_activity():
         if "type_id" not in request.json or "sub_type_id" not in request.json:  # type: ignore
             return jsonify("Bad Request"), 400
 
-        req = requests.get("%s/activities/type/%s/%s/db" % (activities_url, request.json["type_id"], request.json["sub_type_id"]), headers=header)  # type: ignore
+        req = requests.get("%s/activities/type/%s/sub-type/%s/db" % (activities_url, request.json["type_id"], request.json["sub_type_id"]), headers=header)  # type: ignore
 
         if req.status_code != 200:
             return req.json(), req.status_code
@@ -201,7 +211,7 @@ def start_activity():
         if "type_id" not in request.json or "sub_type_id" not in request.json:  # type: ignore
             return jsonify("Bad Request"), 400
 
-        req = requests.get("%s/activities/type/%s/%s/db" % (activities_url, request.json["type_id"], request.json["sub_type_id"]), headers=header)  # type: ignore
+        req = requests.get("%s/activities/type/%s/sub-type/%s/db" % (activities_url, request.json["type_id"], request.json["sub_type_id"]), headers=header)  # type: ignore
 
         if req.status_code != 200:
             return req.json(), req.status_code

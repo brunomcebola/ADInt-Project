@@ -65,6 +65,17 @@ def get_evaluations():
     return jsonify(myList)
 
 
+@app.route("/evaluations/service/<service_id>")
+def get_service_evaluations(service_id):
+    evaluations = session.query(Evaluation).filter(Evaluation.service_id == service_id)
+
+    myList = []
+    for evaluation in evaluations:
+        myList.append(evaluation.as_dict())
+
+    return jsonify(myList)
+
+
 @app.route("/evaluation/<evaluation_id>")
 def get_evaluation(evaluation_id):
 
@@ -87,17 +98,6 @@ def delete_evaluation(evaluation_id):
         return jsonify("OK"), 200
 
     return jsonify("Not Found"), 404
-
-
-@app.route("/evaluations/service/<service_id>")
-def get_service_evaluations(service_id):
-    evaluations = session.query(Evaluation).filter(Evaluation.service_id == service_id)
-
-    myList = []
-    for evaluation in evaluations:
-        myList.append(evaluation.as_dict())
-
-    return jsonify(myList)
 
 
 @app.route("/evaluation/create", methods=["POST"])

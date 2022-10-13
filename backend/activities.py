@@ -38,6 +38,7 @@ class Activity(Base):
     id = Column(Integer, primary_key=True)
     type_id = Column(Integer)
     sub_type_id = Column(Integer)
+    student_id = Column(Integer)
     start_time = Column(DateTime)
     stop_time = Column(DateTime)
     external_id = Column(Integer, default=0)
@@ -83,13 +84,28 @@ def get_activities():
     return myList
 
 
+@app.route("/activities/filter", methods=["POST"])
+def test():
+    if request.is_json and request.data:
+        activities = session.query(Activity)
+        for attr, value in request.json.items():  # type: ignore
+            activities = activities.filter(getattr(Activity, attr).like("%%%s%%" % value))
+
+        myList = []
+        for activity in activities:
+            myList.append(activity.as_dict())
+
+        return jsonify(myList)
+    return jsonify("Bad Request"), 400
+
+
 @app.route("/activities/types")
 def get_activities_types():
     return jsonify(configs["activities"]), 200
 
 
-@app.route("/activities/type/<type_id>/<sub_type_id>/db")
-def get_activities_type_db(type_id, sub_type_id):
+@app.route("/activities/type/<type_id>/sub-type/<sub_type_id>/db")
+def get_activity_type_db(type_id, sub_type_id):
     info = get_activity_info(configs["activities"], int(type_id), int(sub_type_id))
 
     if not info:
@@ -129,7 +145,7 @@ def create_activity():
     if request.is_json and request.data:
         data = {}
         allowed_fields = Activity.columns()
-        mandatory_fileds = ["type_id", "sub_type_id", "start_time", "stop_time"]
+        mandatory_fileds = ["type_id", "sub_type_id", "student_id", "start_time", "stop_time"]
 
         for key in request.json:  # type: ignore
             if key in allowed_fields:
@@ -174,7 +190,7 @@ def start_activity():
     if request.is_json and request.data:
         data = {}
         allowed_fields = ["type_id", "sub_type_id", "external_id", "description"]
-        mandatory_fileds = ["type_id", "sub_type_id"]
+        mandatory_fileds = ["type_id", "sub_type_id", "student_id"]
 
         for key in request.json:  # type: ignore
             if key in allowed_fields:
