@@ -17,7 +17,7 @@ validate_yaml(configs, ["db_path", "db_name", "host", "port"], config_file)
 Base = declarative_base()
 
 
-class Presencial_Service(Base):
+class PresencialService(Base):
     __tablename__ = "presencial_services"
     id = Column(Integer, primary_key=True)
     name = Column(String)  # Name of the Service. Example: Bar de Civil
@@ -25,7 +25,7 @@ class Presencial_Service(Base):
     location = Column(String)  # Location of the Serice. Example: Civil's Building
 
     def __repr__(self):
-        return "<Presencial_Service(id=%d name='%s', description='%s', location=%s)>" % (
+        return "<PresencialService(id=%d name='%s', description='%s', location=%s)>" % (
             self.id,
             self.name,
             self.description,
@@ -58,7 +58,7 @@ def before_request():
 
 @app.route("/services")
 def get_services():
-    services = session.query(Presencial_Service).all()
+    services = session.query(PresencialService).all()
 
     myList = []
     for service in services:
@@ -70,7 +70,7 @@ def get_services():
 @app.route("/service/<id>", methods=["GET", "DELETE"])
 def get_and_delete_service(id):
     if request.method == "GET":
-        service = session.query(Presencial_Service).get(id)
+        service = session.query(PresencialService).get(id)
 
         if service:
             return jsonify(service.as_dict())
@@ -78,7 +78,7 @@ def get_and_delete_service(id):
         return jsonify("Not Found"), 404
 
     else:
-        service = session.query(Presencial_Service).get(id)
+        service = session.query(PresencialService).get(id)
         session.delete(service)
         session.commit()
 
@@ -100,7 +100,7 @@ def create_service():
         if None in info.values():
             return jsonify("Bad Request"), 400
 
-        service = Presencial_Service(name=info["name"], description=info["description"], location=info["location"])
+        service = PresencialService(name=info["name"], description=info["description"], location=info["location"])
         session.add(service)
         session.commit()
 

@@ -5,31 +5,39 @@ port: 3003
 
 activities:
   Personal:
-    Sleep:
-      value: Sleep
-      external: no
-    Eat:
-      value: Eat
-      external: no
-    Leisure:
-      value: Leisure
-      external: no
-    Sports:
-      value: Sports
-      external: no
-    Other:
-      value: Other
-      external: no
+    id: 1
+    values:
+      Sleep:
+        id: 1
+        external: no
+      Eat:
+        id: 2
+        external: no
+      Leisure:
+        id: 3
+        external: no
+      Sports:
+        id: 4
+        external: no
+      Other:
+        id: 5
+        external: no
 
   Academic:
-    Attend classes:
-      value: Attend classes
-      external: yes
-    Study:
-      value: Study
-      external: no
+    id: 2
+    values:
+      Attend classes:
+        id: 1
+        external: yes
+        db: coursesDB
+      Study:
+        id: 2
+        external: no
 
   Administrative:
-    Presential service:
-      value: Presential service
-      external: yes
+    id: 3
+    values:
+      Presential service:
+        id: 1
+        external: yes
+        db: presentialServicesDB

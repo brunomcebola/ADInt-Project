@@ -1,3 +1,4 @@
+from copy import deepcopy
 from sqlalchemy.orm import sessionmaker
 from flask import Flask, request, jsonify
 from sqlalchemy.ext.declarative import declarative_base
@@ -20,25 +21,16 @@ Base = declarative_base()
 class Activity(Base):
     __tablename__ = "activities"
     id = Column(Integer, primary_key=True)
-    name = Column(String)  # Name of the Activity. Example: Aplicações Distribuidas da Internet
-    type = Column(String)  # Activity Type. Example: Aula/Serviço
-    external_id = Column(Integer, default=0)
-    description = Column(String)  # Desciption. Example: Learning REST API
-    start_time = Column(DateTime)  # Year. Example: 3-2-2022
+    type_id = Column(Integer)
+    sub_type_id = Column(Integer)
+    start_time = Column(DateTime)
     stop_time = Column(DateTime)
+    external_id = Column(Integer, default=0)
+    description = Column(String, default="")
 
-    def __repr__(self):
-        return "<Activities(id=%d name='%s', type='%s', time='%s', description='%s', start_time='%s', stop_time='%s')>" % (
-            self.id,
-            self.name,
-            self.type,
-            self.description,
-            str(self.start_time),
-            str(self.stop_time),
-        )
-
-    def as_dict(self):
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+    @classmethod
+    def columns(cls):
+        return [column.key for column in cls.__table__.columns]
 
 
 DATABASE_FILE = configs["db_path"].rstrip("/") + "/" + configs["db_name"] + ".sqlite"
@@ -49,6 +41,20 @@ Base.metadata.create_all(engine)  # Create tables for the data models
 
 Session = sessionmaker(bind=engine)
 session = Session()
+
+
+def get_activity_info(activities, type_id, sub_type_id):
+    for type in activities.values():
+        if type["id"] == type_id:
+            for sub_type in type["values"].values():
+                if sub_type["id"] == sub_type_id:
+                    info = deepcopy(sub_type)
+
+                    del info["id"]
+
+                    return info
+
+    return {}
 
 
 ################################
@@ -78,62 +84,66 @@ def get_activities_types():
     return jsonify(configs["activities"]), 200
 
 
-@app.route("/activity/<activity_id>", methods=["GET", "DELETE"])
-def get_and_delete_activity(activity_id):
-    if request.method == "GET":
-        activity = session.query(Activity).get(activity_id)
+@app.route("/activity/<activity_id>", methods=["GET"])
+def get_activity(activity_id):
+    activity = session.query(Activity).get(activity_id)
 
-        if activity:
-            return jsonify(activity.as_dict())
+    if activity:
+        return jsonify(activity.as_dict())
 
-        return jsonify("Not Found"), 404
+    return jsonify("Not Found"), 404
 
-    else:
-        activity = session.query(Activity).get(activity_id)
-        session.delete(activity)
-        session.commit()
 
-        return jsonify("OK"), 200
+@app.route("/activity/<activity_id>", methods=["DELETE"])
+def delete_activity(activity_id):
+    activity = session.query(Activity).get(activity_id)
+    session.delete(activity)
+    session.commit()
+
+    return jsonify("OK"), 200
 
 
 @app.route("/activity/create", methods=["POST"])
 def create_activity():
     if request.is_json and request.data:
-        info = {"name": None, "type": None, "external_id": None, "description": None, "start_time": None, "stop_time": None}
+        data = {}
+        allowed_fields = Activity.columns()
+        mandatory_fileds = ["type_id", "sub_type_id", "start_time", "stop_time"]
 
         for key in request.json:  # type: ignore
-            if key in info:
-                info[key] = request.json[key]  # type: ignore
+            if key in allowed_fields:
+                data[key] = request.json[key]  # type: ignore
             else:
                 return jsonify("Bad Request"), 400
 
-        if None in info.values():
-            return jsonify("Bad Request"), 400
+        for field in mandatory_fileds:
+            if field not in data:
+                return jsonify("Bad Request"), 400
 
-        # TODO: check if activity type exists
+        activity_info = get_activity_info(configs["activities"], data["type_id"], data["sub_type_id"])
 
-        if configs["activities"][info["type"]][info["name"]]["external"]:
-            course = Activity(
-                name=info["name"],
-                type=info["type"],
-                external_id=info["external_id"],
-                description=info["description"],
-                start_time=datetime.strptime(info["start_time"], "%Y-%m-%dT%H:%MZ"),  # type: ignore
-                stop_time=datetime.strptime(info["stop_time"], "%Y-%m-%dT%H:%MZ"),  # type: ignore
-            )
-        else:
-            course = Activity(
-                name=info["name"],
-                type=info["type"],
-                description=info["description"],
-                start_time=datetime.strptime(info["start_time"], "%Y-%m-%dT%H:%MZ"),  # type: ignore
-                stop_time=datetime.strptime(info["stop_time"], "%Y-%m-%dT%H:%MZ"),  # type: ignore
-            )
+        if activity_info:
 
-        session.add(course)
-        session.commit()
+            if activity_info["external"] and "external_id" not in data:
+                return jsonify("Bad Request"), 400
 
-        return jsonify("Created"), 201
+            try:
+                data["start_time"] = datetime.strptime(data["start_time"], "%Y-%m-%dT%H:%MZ")
+                data["stop_time"] = datetime.strptime(data["stop_time"], "%Y-%m-%dT%H:%MZ")
+            except:
+                return jsonify("Bad Request"), 400
+
+            activity = Activity()
+
+            for key, value in data.items():
+                setattr(activity, key, value)
+
+            session.add(activity)
+            session.commit()
+
+            return jsonify("Created"), 201
+
+        return jsonify("Bad Request"), 400
 
     return jsonify("Bad Request"), 400
 
@@ -141,39 +151,40 @@ def create_activity():
 @app.route("/activity/start", methods=["POST"])
 def start_activity():
     if request.is_json and request.data:
-        info = {"name": None, "type": None, "external_id": None, "description": None}
+        data = {}
+        allowed_fields = ["type_id", "sub_type_id", "external_id", "description"]
+        mandatory_fileds = ["type_id", "sub_type_id"]
 
         for key in request.json:  # type: ignore
-            if key in info:
-                info[key] = request.json[key]  # type: ignore
+            if key in allowed_fields:
+                data[key] = request.json[key]  # type: ignore
             else:
                 return jsonify("Bad Request"), 400
 
-        if None in info.values():
-            return jsonify("Bad Request"), 400
+        for field in mandatory_fileds:
+            if field not in data:
+                return jsonify("Bad Request"), 400
 
-        # TODO: check if activity type exists
+        activity_info = get_activity_info(configs["activities"], data["type_id"], data["sub_type_id"])
 
-        if configs["activities"][info["type"]][info["name"]]["external"]:
-            course = Activity(
-                name=info["name"],
-                type=info["type"],
-                external_id=info["external_id"],
-                description=info["description"],
-                start_time=datetime.now(),  # type: ignore
-            )
-        else:
-            course = Activity(
-                name=info["name"],
-                type=info["type"],
-                description=info["description"],
-                start_time=datetime.now(),  # type: ignore
-            )
+        if activity_info:
 
-        session.add(course)
-        session.commit()
+            if activity_info["external"] and "external_id" not in data:
+                return jsonify("Bad Request"), 400
 
-        return jsonify("Created"), 201
+            data["start_time"] = datetime.now()
+
+            activity = Activity()
+
+            for key, value in data.items():
+                setattr(activity, key, value)
+
+            session.add(activity)
+            session.commit()
+
+            return jsonify("Created"), 201
+
+        return jsonify("Bad Request"), 400
 
     return jsonify("Bad Request"), 400
 
@@ -182,11 +193,14 @@ def start_activity():
 def stop_activity(activity_id):
     activity = session.query(Activity).get(activity_id)
 
+    if getattr(activity, "stop_time"):
+        return jsonify("Bad Request"), 400
+
     setattr(activity, "stop_time", datetime.now())
 
     session.commit()
 
-    return "OK", 200
+    return jsonify("OK"), 200
 
 
 ################################
