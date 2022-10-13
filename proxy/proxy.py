@@ -33,6 +33,16 @@ def get_services():
     return req.json(), req.status_code
 
 
+@app.route("/services/filter")
+def get_filtered_services():
+    if request.args:
+        req = requests.get("%s/services/filter" % services_url, params=request.args.to_dict(), headers=header)
+
+        return req.json(), req.status_code
+
+    return jsonify("Bad Request"), 400
+
+
 @app.route("/service/<service_id>", methods=["GET"])
 def get_service(service_id):
     req = requests.get("%s/service/%s" % (services_url, service_id), headers=header)
@@ -47,12 +57,7 @@ def delete_service(service_id):
 
 @app.route("/service/<service_id>/evaluations")
 def get_service_evaluations(service_id):
-    req = requests.get("%s/service/%s" % (services_url, service_id), headers=header)
-
-    if req.status_code != 200:
-        return req.json(), req.status_code
-
-    req = requests.get("%s/evaluations/service/%s" % (evaluations_url, service_id), headers=header)
+    req = requests.get("%s/evaluations/filter?service_id=%s" % (evaluations_url, service_id), headers=header)
 
     return req.json(), req.status_code
 
@@ -72,7 +77,17 @@ def create_service():
 @app.route("/evaluations")
 def get_evaluations():
     req = requests.get("%s/evaluations" % evaluations_url, headers=header)
-    return req.json()
+    return req.json(), req.status_code
+
+
+@app.route("/evaluations/filter")
+def get_filtered_evaluations():
+    if request.args:
+        req = requests.get("%s/evaluations/filter" % evaluations_url, params=request.args.to_dict(), headers=header)
+
+        return req.json(), req.status_code
+
+    return jsonify("Bad Request"), 400
 
 
 @app.route("/evaluation/<evaluation_id>", methods=["GET"])
@@ -90,9 +105,11 @@ def delete_evaluation(evaluation_id):
 @app.route("/evaluation/create", methods=["POST"])
 def create_evaluation():
     if request.is_json and request.data:
+        mandatory_fileds = ["service_id"]
 
-        if "service_id" not in request.json:  # type: ignore
-            return jsonify("Bad Request"), 400
+        for field in mandatory_fileds:
+            if field not in request.json:  # type:ignore
+                return jsonify("Bad Request"), 400
 
         req = requests.get("%s/service/%s" % (services_url, request.json["service_id"]), headers=header)  # type: ignore
 
@@ -113,6 +130,16 @@ def create_evaluation():
 def get_courses():
     req = requests.get("%s/courses" % courses_url, headers=header)
     return req.json(), req.status_code
+
+
+@app.route("/courses/filter")
+def get_filtered_courses():
+    if request.args:
+        req = requests.get("%s/courses/filter" % courses_url, params=request.args.to_dict(), headers=header)
+
+        return req.json(), req.status_code
+
+    return jsonify("Bad Request"), 400
 
 
 @app.route("/course/<course_id>", methods=["GET"])
@@ -145,20 +172,26 @@ def get_activities():
     return req.json(), req.status_code
 
 
+@app.route("/activities/filter")
+def get_filtered_activities():
+    if request.args:
+        req = requests.get("%s/activities/filter" % activities_url, params=request.args.to_dict(), headers=header)
+
+        return req.json(), req.status_code
+
+    return jsonify("Bad Request"), 400
+
+
 @app.route("/activities/types")
 def get_activities_types():
     req = requests.get("%s/activities/types" % activities_url, headers=header)
     return req.json(), req.status_code
 
 
-@app.route("/activities/filter", methods=["POST"])
-def get_filtered_activities():
-    if request.is_json and request.data:        
-        req = requests.post("%s/activities/filter" % activities_url, json=request.json, headers=header)
-
-        return req.json(), req.status_code
-
-    return jsonify("Bad Request"), 400
+@app.route("/activity/type/<type_id>/<sub_type_id>/db")
+def get_activity_db(type_id, sub_type_i):
+    req = requests.get("%s/activity/type/%s/%s/db" % (activities_url, type_id, sub_type_i), headers=header)
+    return req.json(), req.status_code
 
 
 @app.route("/activity/<activity_id>", methods=["GET"])
@@ -177,25 +210,29 @@ def delete_activity(activity_id):
 def create_activity():
     if request.is_json and request.data:
 
-        if "type_id" not in request.json or "sub_type_id" not in request.json:  # type: ignore
-            return jsonify("Bad Request"), 400
+        mandatory_fileds = ["type_id", "sub_type_id"]
 
-        req = requests.get("%s/activities/type/%s/sub-type/%s/db" % (activities_url, request.json["type_id"], request.json["sub_type_id"]), headers=header)  # type: ignore
+        for field in mandatory_fileds:
+            if field not in request.json:  # type:ignore
+                return jsonify("Bad Request"), 400
 
-        if req.status_code != 200:
-            return req.json(), req.status_code
-
-        if "external_id" not in request.json and req.json():  # type: ignore
-            return jsonify("Bad Request"), 400
-
-        else:
-            if req.json() == "CoursesDB":
-                req = requests.get("%s/course/%s" % (courses_url, request.json["external_id"]), headers=header)  # type: ignore
-            elif req.json() == "PresentialServicesDB":
-                req = requests.get("%s/service/%s" % (services_url, request.json["external_id"]), headers=header)  # type: ignore
+        req = requests.get("%s/activity/type/%s/%s/db" % (activities_url, request.json["type_id"], request.json["sub_type_id"]), headers=header)  # type: ignore
 
         if req.status_code != 200:
             return req.json(), req.status_code
+
+        if req.json():
+            if "external_id" not in request.json:  # type: ignore
+                return jsonify("Bad Request"), 400
+
+            else:
+                if req.json() == "CoursesDB":
+                    req = requests.get("%s/course/%s" % (courses_url, request.json["external_id"]), headers=header)  # type: ignore
+                elif req.json() == "PresentialServicesDB":
+                    req = requests.get("%s/service/%s" % (services_url, request.json["external_id"]), headers=header)  # type: ignore
+
+                if req.status_code != 200:
+                    return req.json(), req.status_code
 
         req = requests.post("%s/activity/create" % activities_url, json=request.json, headers=header)
 
@@ -208,25 +245,29 @@ def create_activity():
 def start_activity():
     if request.is_json and request.data:
 
-        if "type_id" not in request.json or "sub_type_id" not in request.json:  # type: ignore
-            return jsonify("Bad Request"), 400
+        mandatory_fileds = ["type_id", "sub_type_id"]
 
-        req = requests.get("%s/activities/type/%s/sub-type/%s/db" % (activities_url, request.json["type_id"], request.json["sub_type_id"]), headers=header)  # type: ignore
+        for field in mandatory_fileds:
+            if field not in request.json:  # type:ignore
+                return jsonify("Bad Request"), 400
 
-        if req.status_code != 200:
-            return req.json(), req.status_code
-
-        if "external_id" not in request.json and req.json():  # type: ignore
-            return jsonify("Bad Request"), 400
-
-        else:
-            if req.json() == "CoursesDB":
-                req = requests.get("%s/course/%s" % (courses_url, request.json["external_id"]), headers=header)  # type: ignore
-            elif req.json() == "PresentialServicesDB":
-                req = requests.get("%s/service/%s" % (services_url, request.json["external_id"]), headers=header)  # type: ignore
+        req = requests.get("%s/activity/type/%s/%s/db" % (activities_url, request.json["type_id"], request.json["sub_type_id"]), headers=header)  # type: ignore
 
         if req.status_code != 200:
             return req.json(), req.status_code
+
+        if req.json():
+            if "external_id" not in request.json:  # type: ignore
+                return jsonify("Bad Request"), 400
+
+            else:
+                if req.json() == "CoursesDB":
+                    req = requests.get("%s/course/%s" % (courses_url, request.json["external_id"]), headers=header)  # type: ignore
+                elif req.json() == "PresentialServicesDB":
+                    req = requests.get("%s/service/%s" % (services_url, request.json["external_id"]), headers=header)  # type: ignore
+
+                if req.status_code != 200:
+                    return req.json(), req.status_code
 
         req = requests.post("%s/activity/start" % activities_url, json=request.json, headers=header)
 

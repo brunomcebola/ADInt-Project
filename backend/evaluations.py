@@ -22,8 +22,8 @@ class Evaluation(Base):
     id = Column(Integer, primary_key=True)
     service_id = Column(Integer)
     rating = Column(Integer)
-    description = Column(String)
     datetime = Column(DateTime)
+    description = Column(String, default="")
 
     @classmethod
     def columns(cls):
@@ -62,18 +62,29 @@ def get_evaluations():
     for evaluation in evaluations:
         myList.append(evaluation.as_dict())
 
-    return jsonify(myList)
+    return jsonify(myList), 200
 
 
-@app.route("/evaluations/service/<service_id>")
-def get_service_evaluations(service_id):
-    evaluations = session.query(Evaluation).filter(Evaluation.service_id == service_id)
+@app.route("/evaluations/filter")
+def get_filtered_evaluations():
+    if request.args:
+        filters = request.args.to_dict()
+        allowed_filters = Evaluation.columns()
 
-    myList = []
-    for evaluation in evaluations:
-        myList.append(evaluation.as_dict())
+        for filter_key in filters:
+            if filter_key not in allowed_filters:
+                return jsonify("Bad Request"), 400
 
-    return jsonify(myList)
+        evaluations = session.query(Evaluation)
+        for attr, value in filters.items():
+            evaluations = evaluations.filter(getattr(Evaluation, attr).like("%%%s%%" % value))
+
+        my_list = []
+        for evaluation in evaluations:
+            my_list.append(evaluation.as_dict())
+
+        return jsonify(my_list), 200
+    return jsonify("Bad Request"), 400
 
 
 @app.route("/evaluation/<evaluation_id>")
@@ -103,23 +114,37 @@ def delete_evaluation(evaluation_id):
 @app.route("/evaluation/create", methods=["POST"])
 def create_evaluation():
     if request.is_json and request.data:
-        info = {"service_id": None, "rating": None, "description": None}
+        data = {}
+        allowed_fields = Evaluation.columns()
+        allowed_fields.remove("id")
+        mandatory_fileds = ["service_id", "rating"]
 
         for key in request.json:  # type: ignore
-            if key in info:
-                info[key] = request.json[key]  # type: ignore
+            if key in allowed_fields:
+                data[key] = request.json[key]  # type: ignore
             else:
                 return jsonify("Bad Request"), 400
 
-        if None in info.values():
-            return jsonify("Bad Request"), 400
+        for field in mandatory_fileds:
+            if field not in data:
+                return jsonify("Bad Request"), 400
 
-        if info["rating"] < 1 or info["rating"] > 5:  # type: ignore
+        if data["rating"] < 1 or data["rating"] > 5:  # type: ignore
             return jsonify("Bad request"), 400
 
-        evaluation = Evaluation(
-            service_id=info["service_id"], rating=info["rating"], description=info["description"], datetime=datetime.now()
-        )
+        if "datetime" in data:
+            try:
+                data["datetime"] = datetime.strptime(data["datetime"], "%Y-%m-%dT%H:%MZ")
+            except:
+                return jsonify("Bad Request"), 400
+        else:
+            data["datetime"] = datetime.now()
+
+        evaluation = Evaluation()
+
+        for key, value in data.items():
+            setattr(evaluation, key, value)
+
         session.add(evaluation)
         session.commit()
 

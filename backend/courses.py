@@ -19,10 +19,10 @@ Base = declarative_base()
 class Course(Base):
     __tablename__ = "courses"
     id = Column(Integer, primary_key=True)
-    name = Column(String)  # Name of the Course. Example: Aplicações Distribuidas da Internet
-    professor = Column(String)  # Professor. Example: Jnos
-    school_year = Column(String)  # Year. Example: 2022/2023
-    description = Column(String)  # Desciption. Example: Learning REST API
+    name = Column(String)
+    professor = Column(String)
+    school_year = Column(String)
+    description = Column(String, default="")
 
     @classmethod
     def columns(cls):
@@ -57,11 +57,33 @@ def before_request():
 def get_courses():
     courses = session.query(Course).all()
 
-    myList = []
+    my_list = []
     for course in courses:
-        myList.append(course.as_dict())
+        my_list.append(course.as_dict())
 
-    return jsonify(myList)
+    return jsonify(my_list), 200
+
+
+@app.route("/courses/filter")
+def get_filtered_courses():
+    if request.args:
+        filters = request.args.to_dict()
+        allowed_filters = Course.columns()
+
+        for filter_key in filters:
+            if filter_key not in allowed_filters:
+                return jsonify("Bad Request"), 400
+
+        courses = session.query(Course)
+        for attr, value in filters.items():
+            courses = courses.filter(getattr(Course, attr).like("%%%s%%" % value))
+
+        my_list = []
+        for course in courses:
+            my_list.append(course.as_dict())
+
+        return jsonify(my_list), 200
+    return jsonify("Bad Request"), 400
 
 
 @app.route("/course/<course_id>")
@@ -69,7 +91,7 @@ def get_course(course_id):
     course = session.query(Course).get(course_id)
 
     if course:
-        return jsonify(course.as_dict())
+        return jsonify(course.as_dict()), 200
 
     return jsonify("Not Found"), 404
 
@@ -89,22 +111,27 @@ def delete_course(course_id):
 
 @app.route("/course/create", methods=["POST"])
 def create_course():
-
     if request.is_json and request.data:
-        info = {"name": None, "professor": None, "school_year": None, "description": None}
+        data = {}
+        allowed_fields = Course.columns()
+        allowed_fields.remove("id")
+        mandatory_fileds = ["name", "professor", "school_year"]
 
         for key in request.json:  # type: ignore
-            if key in info:
-                info[key] = request.json[key]  # type: ignore
+            if key in allowed_fields:
+                data[key] = request.json[key]  # type: ignore
             else:
                 return jsonify("Bad Request"), 400
 
-        if None in info.values():
-            return jsonify("Bad Request"), 400
+        for field in mandatory_fileds:
+            if field not in data:
+                return jsonify("Bad Request"), 400
 
-        course = Course(
-            name=info["name"], professor=info["professor"], school_year=info["school_year"], description=info["description"]
-        )
+        course = Course()
+
+        for key, value in data.items():
+            setattr(course, key, value)
+
         session.add(course)
         session.commit()
 

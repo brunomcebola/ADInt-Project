@@ -22,6 +22,11 @@ def get_activity_info(activities, type_id, sub_type_id):
     return {}
 
 
+# TODO
+def check_activities_format():
+    return
+
+
 # read and validate configurations
 config_file = "./config/activities.yaml"
 
@@ -40,13 +45,17 @@ class Activity(Base):
     sub_type_id = Column(Integer)
     student_id = Column(Integer)
     start_time = Column(DateTime)
-    stop_time = Column(DateTime)
+    stop_time = Column(DateTime)  # TODO
     external_id = Column(Integer, default=0)
     description = Column(String, default="")
 
     @classmethod
     def columns(cls):
-        return [column.key for column in cls.__table__.columns]
+        columns = [column.key for column in cls.__table__.columns]
+
+        columns.remove("id")
+
+        return columns
 
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
@@ -77,25 +86,32 @@ def before_request():
 def get_activities():
     activities = session.query(Activity).all()
 
-    myList = []
+    my_list = []
     for activity in activities:
-        myList.append(activity.as_dict())
+        my_list.append(activity.as_dict())
 
-    return myList
+    return jsonify(my_list), 200
 
 
-@app.route("/activities/filter", methods=["POST"])
-def test():
-    if request.is_json and request.data:
+@app.route("/activities/filter")
+def get_filtered_activities():
+    if request.args:
+        filters = request.args.to_dict()
+        allowed_filters = Activity.columns()
+
+        for filter_key in filters:
+            if filter_key not in allowed_filters:
+                return jsonify("Bad Request"), 400
+
         activities = session.query(Activity)
-        for attr, value in request.json.items():  # type: ignore
+        for attr, value in filters.items():
             activities = activities.filter(getattr(Activity, attr).like("%%%s%%" % value))
 
-        myList = []
+        my_list = []
         for activity in activities:
-            myList.append(activity.as_dict())
+            my_list.append(activity.as_dict())
 
-        return jsonify(myList)
+        return jsonify(my_list), 200
     return jsonify("Bad Request"), 400
 
 
@@ -104,9 +120,9 @@ def get_activities_types():
     return jsonify(configs["activities"]), 200
 
 
-@app.route("/activities/type/<type_id>/sub-type/<sub_type_id>/db")
-def get_activity_type_db(type_id, sub_type_id):
-    info = get_activity_info(configs["activities"], int(type_id), int(sub_type_id))
+@app.route("/activity/type/<type_id>/<sub_type_id>/db")
+def get_activity_db(type_id, sub_type_id):
+    info = get_activity_info(configs["activities"], type_id, sub_type_id)
 
     if not info:
         return jsonify("Not Found"), 404
@@ -145,6 +161,7 @@ def create_activity():
     if request.is_json and request.data:
         data = {}
         allowed_fields = Activity.columns()
+        allowed_fields.remove("id")
         mandatory_fileds = ["type_id", "sub_type_id", "student_id", "start_time", "stop_time"]
 
         for key in request.json:  # type: ignore

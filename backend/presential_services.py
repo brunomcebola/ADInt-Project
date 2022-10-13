@@ -1,3 +1,4 @@
+from email.policy import default
 from sqlalchemy.orm import sessionmaker
 from flask import Flask, request, jsonify
 from sqlalchemy.ext.declarative import declarative_base
@@ -20,9 +21,9 @@ Base = declarative_base()
 class PresencialService(Base):
     __tablename__ = "presencial_services"
     id = Column(Integer, primary_key=True)
-    name = Column(String)  # Name of the Service. Example: Bar de Civil
-    description = Column(String)  # Desciption. Example: Sells food and drinks
-    location = Column(String)  # Location of the Serice. Example: Civil's Building
+    name = Column(String)
+    location = Column(String)
+    description = Column(String, default="")
 
     @classmethod
     def columns(cls):
@@ -60,7 +61,29 @@ def get_services():
     for service in services:
         myList.append(service.as_dict())
 
-    return jsonify(myList)
+    return jsonify(myList), 200
+
+
+@app.route("/services/filter")
+def get_filtered_services():
+    if request.args:
+        filters = request.args.to_dict()
+        allowed_filters = PresencialService.columns()
+
+        for filter_key in filters:
+            if filter_key not in allowed_filters:
+                return jsonify("Bad Request"), 400
+
+        services = session.query(PresencialService)
+        for attr, value in filters.items():
+            services = services.filter(getattr(PresencialService, attr).like("%%%s%%" % value))
+
+        my_list = []
+        for service in services:
+            my_list.append(service.as_dict())
+
+        return jsonify(my_list), 200
+    return jsonify("Bad Request"), 400
 
 
 @app.route("/service/<service_id>")
@@ -68,7 +91,7 @@ def get_service(service_id):
     service = session.query(PresencialService).get(service_id)
 
     if service:
-        return jsonify(service.as_dict())
+        return jsonify(service.as_dict()), 200
 
     return jsonify("Not Found"), 404
 
@@ -88,20 +111,27 @@ def delete_service(service_id):
 
 @app.route("/service/create", methods=["POST"])
 def create_service():
-
     if request.is_json and request.data:
-        info = {"name": None, "description": None, "location": None}
+        data = {}
+        allowed_fields = PresencialService.columns()
+        allowed_fields.remove("id")
+        mandatory_fileds = ["name", "location"]
 
         for key in request.json:  # type: ignore
-            if key in info:
-                info[key] = request.json[key]  # type: ignore
+            if key in allowed_fields:
+                data[key] = request.json[key]  # type: ignore
             else:
                 return jsonify("Bad Request"), 400
 
-        if None in info.values():
-            return jsonify("Bad Request"), 400
+        for field in mandatory_fileds:
+            if field not in data:
+                return jsonify("Bad Request"), 400
 
-        service = PresencialService(name=info["name"], description=info["description"], location=info["location"])
+        service = PresencialService()
+
+        for key, value in data.items():
+            setattr(service, key, value)
+
         session.add(service)
         session.commit()
 

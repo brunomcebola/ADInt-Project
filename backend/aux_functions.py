@@ -1,14 +1,14 @@
 import yaml
 
-from flask import  request
+from flask import request, jsonify
 
 
 def check_auth_token():
     if "Token" not in request.headers:
-        return "Proxy Authentication Required", 407
+        return jsonify("Proxy Authentication Required"), 407
 
     if request.headers["Token"] != "proxy":
-        return "Unauthorized", 401
+        return jsonify("Unauthorized"), 401
 
 
 def read_yaml(file_path: str):
