@@ -24,14 +24,9 @@ class Course(Base):
     school_year = Column(String)  # Year. Example: 2022/2023
     description = Column(String)  # Desciption. Example: Learning REST API
 
-    def __repr__(self):
-        return "<Course(id=%d name='%s', professor='%s', school_year='%s', description='%s')>" % (
-            self.id,
-            self.name,
-            self.professor,
-            self.school_year,
-            self.description,
-        )
+    @classmethod
+    def columns(cls):
+        return [column.key for column in cls.__table__.columns]
 
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
@@ -69,22 +64,27 @@ def get_courses():
     return jsonify(myList)
 
 
-@app.route("/course/<id>", methods=["GET", "DELETE"])
-def get_and_delete_course(id):
-    if request.method == "GET":
-        course = session.query(Course).get(id)
+@app.route("/course/<course_id>")
+def get_course(course_id):
+    course = session.query(Course).get(course_id)
 
-        if course:
-            return jsonify(course.as_dict())
+    if course:
+        return jsonify(course.as_dict())
 
-        return jsonify("Not Found"), 404
+    return jsonify("Not Found"), 404
 
-    else:
-        course = session.query(Course).get(id)
+
+@app.route("/course/<course_id>", methods=["DELETE"])
+def delete_course(course_id):
+    course = session.query(Course).get(course_id)
+
+    if course:
         session.delete(course)
         session.commit()
 
         return jsonify("OK"), 200
+
+    return jsonify("Not Found"), 404
 
 
 @app.route("/course/create", methods=["POST"])

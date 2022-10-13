@@ -1,8 +1,10 @@
+from copy import deepcopy
 from flask import Flask, request, jsonify
 
 import requests
 
-from proxy.aux_functions import *
+from aux_functions import *
+
 
 header = {"Token": "proxy"}
 
@@ -11,11 +13,14 @@ config_file = "./config.yaml"
 
 configs = read_yaml(config_file)
 
-validate_yaml(configs, ["host", "port", "ps_host", "ps_port", "e_host", "e_port", "c_host", "c_port"], config_file)
+validate_yaml(
+    configs, ["host", "port", "ps_host", "ps_port", "e_host", "e_port", "c_host", "c_port", "a_host", "a_port"], config_file
+)
 
 services_url = "http://%s:%s" % (configs["ps_host"], configs["ps_port"])
 evaluations_url = "http://%s:%s" % (configs["e_host"], configs["e_port"])
 courses_url = "http://%s:%s" % (configs["c_host"], configs["c_port"])
+activities_url = "http://%s:%s" % (configs["a_host"], configs["a_port"])
 
 app = Flask(__name__)
 
@@ -123,7 +128,7 @@ def delete_course(course_id):
 
 
 @app.route("/course/create", methods=["POST"])
-def create_course():
+def create_course():    
     if request.is_json and request.data:
         req = requests.post("%s/course/create" % courses_url, json=request.json, headers=header)
         return req.json(), req.status_code
@@ -134,17 +139,96 @@ def create_course():
 # Activities
 
 
-@app.route("/createActivity", methods=["GET", "POST"])
-def createActivity():
-    dicToSend = {"title": "doProxy", "description": "hello world", "location": "jerusalem"}
-    req = requests.post("http://127.0.0.1:8002/createActivity", json=dicToSend, headers=header)
-    return req.json()
+@app.route("/activities")
+def get_activities():
+    req = requests.get("%s/activities" % activities_url, headers=header)
+    return req.json(), req.status_code
 
 
-@app.route("/listActivities")
-def getAllActivities():
-    req = requests.get("http://127.0.0.1:8002/listActivities")
-    return req.json()
+@app.route("/activities/types")
+def get_activities_types():
+    req = requests.get("%s/activities/types" % activities_url, headers=header)
+    return req.json(), req.status_code
+
+
+@app.route("/activity/<activity_id>", methods=["GET"])
+def get_activity(activity_id):
+    req = requests.get("%s/activity/%s" % (activities_url, activity_id), headers=header)
+    return req.json(), req.status_code
+
+
+@app.route("/activity/<activity_id>", methods=["DELETE"])
+def delete_activity(activity_id):
+    req = requests.delete("%s/activity/%s" % (activities_url, activity_id), headers=header)
+    return req.json(), req.status_code
+
+
+@app.route("/activity/create", methods=["POST"])
+def create_activity():
+    if request.is_json and request.data:
+
+        if "type_id" not in request.json or "sub_type_id" not in request.json:  # type: ignore
+            return jsonify("Bad Request"), 400
+
+        req = requests.get("%s/activities/type/%s/%s/db" % (activities_url, request.json["type_id"], request.json["sub_type_id"]), headers=header)  # type: ignore
+
+        if req.status_code != 200:
+            return req.json(), req.status_code
+
+        if "external_id" not in request.json and req.json():  # type: ignore
+            return jsonify("Bad Request"), 400
+
+        else:
+            if req.json() == "CoursesDB":
+                req = requests.get("%s/course/%s" % (courses_url, request.json["external_id"]), headers=header)  # type: ignore
+            elif req.json() == "PresentialServicesDB":
+                req = requests.get("%s/service/%s" % (services_url, request.json["external_id"]), headers=header)  # type: ignore
+
+        if req.status_code != 200:
+            return req.json(), req.status_code
+
+        req = requests.post("%s/activity/create" % activities_url, json=request.json, headers=header)
+
+        return req.json(), req.status_code
+
+    return jsonify("Bad Request"), 400
+
+
+@app.route("/activity/start", methods=["POST"])
+def start_activity():
+    if request.is_json and request.data:
+
+        if "type_id" not in request.json or "sub_type_id" not in request.json:  # type: ignore
+            return jsonify("Bad Request"), 400
+
+        req = requests.get("%s/activities/type/%s/%s/db" % (activities_url, request.json["type_id"], request.json["sub_type_id"]), headers=header)  # type: ignore
+
+        if req.status_code != 200:
+            return req.json(), req.status_code
+
+        if "external_id" not in request.json and req.json():  # type: ignore
+            return jsonify("Bad Request"), 400
+
+        else:
+            if req.json() == "CoursesDB":
+                req = requests.get("%s/course/%s" % (courses_url, request.json["external_id"]), headers=header)  # type: ignore
+            elif req.json() == "PresentialServicesDB":
+                req = requests.get("%s/service/%s" % (services_url, request.json["external_id"]), headers=header)  # type: ignore
+
+        if req.status_code != 200:
+            return req.json(), req.status_code
+
+        req = requests.post("%s/activity/start" % activities_url, json=request.json, headers=header)
+
+        return req.json(), req.status_code
+
+    return jsonify("Bad Request"), 400
+
+
+@app.route("/activity/<activity_id>/stop", methods=["PUT"])
+def stop_activity(activity_id):
+    req = requests.put("%s/activity/%s/stop" % (activities_url, activity_id), headers=header)
+    return req.json(), req.status_code
 
 
 ################################

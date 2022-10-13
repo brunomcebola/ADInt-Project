@@ -7,6 +7,21 @@ from datetime import datetime
 
 from aux_functions import *
 
+
+def get_activity_info(activities, type_id, sub_type_id):
+    for type in activities.values():
+        if type["id"] == type_id:
+            for sub_type in type["values"].values():
+                if sub_type["id"] == sub_type_id:
+                    info = deepcopy(sub_type)
+
+                    del info["id"]
+
+                    return info
+
+    return {}
+
+
 # read and validate configurations
 config_file = "./config/activities.yaml"
 
@@ -32,6 +47,9 @@ class Activity(Base):
     def columns(cls):
         return [column.key for column in cls.__table__.columns]
 
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
 
 DATABASE_FILE = configs["db_path"].rstrip("/") + "/" + configs["db_name"] + ".sqlite"
 
@@ -41,20 +59,6 @@ Base.metadata.create_all(engine)  # Create tables for the data models
 
 Session = sessionmaker(bind=engine)
 session = Session()
-
-
-def get_activity_info(activities, type_id, sub_type_id):
-    for type in activities.values():
-        if type["id"] == type_id:
-            for sub_type in type["values"].values():
-                if sub_type["id"] == sub_type_id:
-                    info = deepcopy(sub_type)
-
-                    del info["id"]
-
-                    return info
-
-    return {}
 
 
 ################################
@@ -84,7 +88,20 @@ def get_activities_types():
     return jsonify(configs["activities"]), 200
 
 
-@app.route("/activity/<activity_id>", methods=["GET"])
+@app.route("/activities/type/<type_id>/<sub_type_id>/db")
+def get_activities_type_db(type_id, sub_type_id):
+    info = get_activity_info(configs["activities"], int(type_id), int(sub_type_id))
+
+    if not info:
+        return jsonify("Not Found"), 404
+
+    if info["external"]:
+        return jsonify(info["db"]), 200
+
+    return jsonify(""), 200
+
+
+@app.route("/activity/<activity_id>")
 def get_activity(activity_id):
     activity = session.query(Activity).get(activity_id)
 
@@ -97,10 +114,14 @@ def get_activity(activity_id):
 @app.route("/activity/<activity_id>", methods=["DELETE"])
 def delete_activity(activity_id):
     activity = session.query(Activity).get(activity_id)
-    session.delete(activity)
-    session.commit()
 
-    return jsonify("OK"), 200
+    if activity:
+        session.delete(activity)
+        session.commit()
+
+        return jsonify("OK"), 200
+
+    return jsonify("Not Found"), 404
 
 
 @app.route("/activity/create", methods=["POST"])

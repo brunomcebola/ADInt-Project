@@ -25,14 +25,9 @@ class Evaluation(Base):
     description = Column(String)
     datetime = Column(DateTime)
 
-    def __repr__(self):
-        return "<Evaluation(id=%d, service_id='%d', rating='%d', description='%s', datetime='%s')>" % (
-            self.id,
-            self.service_id,
-            self.rating,
-            self.description,
-            str(self.datetime),
-        )
+    @classmethod
+    def columns(cls):
+        return [column.key for column in cls.__table__.columns]
 
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
@@ -70,22 +65,28 @@ def get_evaluations():
     return jsonify(myList)
 
 
-@app.route("/evaluation/<id>", methods=["GET", "DELETE"])
-def get_and_delete_evaluation(id):
-    if request.method == "GET":
-        evaluation = session.query(Evaluation).get(id)
+@app.route("/evaluation/<evaluation_id>")
+def get_evaluation(evaluation_id):
 
-        if evaluation:
-            return jsonify(evaluation.as_dict())
+    evaluation = session.query(Evaluation).get(evaluation_id)
 
-        return jsonify("Not Found"), 404
+    if evaluation:
+        return jsonify(evaluation.as_dict())
 
-    else:
-        evaluation = session.query(Evaluation).get(id)
+    return jsonify("Not Found"), 404
+
+
+@app.route("/evaluation/<evaluation_id>", methods=["DELETE"])
+def delete_evaluation(evaluation_id):
+    evaluation = session.query(Evaluation).get(evaluation_id)
+
+    if evaluation:
         session.delete(evaluation)
         session.commit()
 
         return jsonify("OK"), 200
+
+    return jsonify("Not Found"), 404
 
 
 @app.route("/evaluations/service/<service_id>")

@@ -9,3 +9,6 @@ e_port: 3001
 
 c_host: 127.0.0.1
 c_port: 3002
+
+a_host: 127.0.0.1
+a_port: 3003

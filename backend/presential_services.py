@@ -6,7 +6,7 @@ from sqlalchemy import create_engine, Column, Integer, String
 from aux_functions import *
 
 # read and validate configurations
-config_file = "./config/presentialServices.yaml"
+config_file = "./config/presential_services.yaml"
 
 configs = read_yaml(config_file)
 
@@ -24,13 +24,9 @@ class PresencialService(Base):
     description = Column(String)  # Desciption. Example: Sells food and drinks
     location = Column(String)  # Location of the Serice. Example: Civil's Building
 
-    def __repr__(self):
-        return "<PresencialService(id=%d name='%s', description='%s', location=%s)>" % (
-            self.id,
-            self.name,
-            self.description,
-            self.location,
-        )
+    @classmethod
+    def columns(cls):
+        return [column.key for column in cls.__table__.columns]
 
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
@@ -67,22 +63,27 @@ def get_services():
     return jsonify(myList)
 
 
-@app.route("/service/<id>", methods=["GET", "DELETE"])
-def get_and_delete_service(id):
-    if request.method == "GET":
-        service = session.query(PresencialService).get(id)
+@app.route("/service/<service_id>")
+def get_service(service_id):
+    service = session.query(PresencialService).get(service_id)
 
-        if service:
-            return jsonify(service.as_dict())
+    if service:
+        return jsonify(service.as_dict())
 
-        return jsonify("Not Found"), 404
+    return jsonify("Not Found"), 404
 
-    else:
-        service = session.query(PresencialService).get(id)
+
+@app.route("/service/<service_id>", methods=["DELETE"])
+def delete_service(service_id):
+    service = session.query(PresencialService).get(service_id)
+
+    if service:
         session.delete(service)
         session.commit()
 
         return jsonify("OK"), 200
+
+    return jsonify("Not Found"), 404
 
 
 @app.route("/service/create", methods=["POST"])

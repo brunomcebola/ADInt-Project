@@ -29,7 +29,7 @@ activities:
       Attend classes:
         id: 1
         external: yes
-        db: coursesDB
+        db: CoursesDB
       Study:
         id: 2
         external: no
@@ -40,4 +40,4 @@ activities:
       Presential service:
         id: 1
         external: yes
-        db: presentialServicesDB
+        db: PresentialServicesDB
