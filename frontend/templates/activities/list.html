@@ -11,8 +11,8 @@
         <th>ID</th>
         <th>Type</th>
         <th>Sub Type</th>
+        <th>Course/Service</th>
         <th>Student ID</th>
-        <th>External ID</th>
         <th>Start Time</th>
         <th>Stop Time</th>
         <th>Description</th>
@@ -25,8 +25,8 @@
         <td>{{activity.id}}</td>
         <td>{{activity.type_name}}</td>
         <td>{{activity.sub_type_name}}</td>
+        <td>{{activity.external_name}}</td>
         <td>{{activity.student_id}}</td>
-        <td>{{activity.external_id}}</td>
         <td>{{activity.start_time}}</td>
         <td>{{activity.stop_time}}</td>
         <td>{{activity.description}}</td>
@@ -37,7 +37,8 @@
       {% endfor %}
     </tbody>
   </table>
-  
+
+  {% if show_filters %}
   <form id="filter-activities-form" action="/activities" method="post">
     <label for="filter_type">Type</label>
     <br />
@@ -61,10 +62,14 @@
   
     <br /><br />
   
-    <label for="filter_external">External id</label>
+    <label for="filter_external">Course/Service</label>
     <br />
     <input type="checkbox" name="filter_external"/>
-    <input type="text" name="external_id"/>
+    <select name="external_id">
+      {% for external in externals %}
+      <option value={{external["value"]}}>{{external["name"]}}</option>
+      {% endfor %}
+    </select>
   
     <br /><br />
   
@@ -77,6 +82,7 @@
   
     <input type="submit" value="Filter" />
   </form>
+  {% endif %}
 </div>
 
 {% endblock %}

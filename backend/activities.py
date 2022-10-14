@@ -118,8 +118,6 @@ def get_activities_types():
 def get_activity_db(type_id, sub_type_id):
     info = get_activity_info(configs["activities"], int(type_id), int(sub_type_id))
 
-    print(info)
-
     if not info:
         return jsonify("Not Found"), 404
 
@@ -157,8 +155,6 @@ def create_activity():
     if request.is_json and request.data:
         data = {}
         allowed_fields = Activity.columns()
-
-        print(allowed_fields)
 
         allowed_fields.remove("id")
         mandatory_fileds = ["type_id", "sub_type_id", "student_id", "start_time", "stop_time"]

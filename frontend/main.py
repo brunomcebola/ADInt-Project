@@ -1,5 +1,7 @@
-from flask import Flask, render_template, request, send_from_directory, redirect, url_for
+import re
+from flask import Flask, render_template, request, redirect
 import requests
+import json
 
 from aux_functions import *
 
@@ -113,14 +115,56 @@ def create_course():
         return render_template("courses/create.html")
 
 
-# @app.route("/course/<course_id>/attendances")
-# def get_course_attendances(course_id):
-#     resp = requests.get("%s/activities/filter?type_id=2&sub_type_id=1&external_id=%s" % (proxy_url, course_id))
+@app.route("/course/<course_id>/attendances")
+def get_course_attendances(course_id):
+    resp = requests.get("%s/activities/filter?type_id=2&sub_type_id=1&external_id=%s" % (proxy_url, course_id))
 
-#     if resp.status_code >= 500:
-#         return redirect("/offline")
+    if resp.status_code >= 500:
+        return redirect("/offline")
 
-#     return render_template("activities/list.html", activities=resp.json())
+    activities = resp.json()
+
+    resp = requests.get("%s/activities/types" % proxy_url)
+
+    if resp.status_code >= 500:
+        return redirect("/offline")
+
+    activities_types_info = resp.json()
+
+    for activity in activities:
+        for type in activities_types_info:
+            if activities_types_info[type]["id"] == activity["type_id"]:
+                activity["type_name"] = type
+
+                for sub_type in activities_types_info[type]["values"]:
+                    if activities_types_info[type]["values"][sub_type]["id"] == activity["sub_type_id"]:
+                        activity["sub_type_name"] = sub_type
+
+        resp = requests.get("%s/activity/type/%s/%s/db" % (proxy_url, activity["type_id"], activity["sub_type_id"]))
+
+        if resp.status_code >= 500:
+            return redirect("/offline")
+
+        if resp.json() == "CoursesDB":
+            resp = requests.get("%s/course/%s" % (proxy_url, activity["external_id"]))
+
+            if resp.status_code >= 500:
+                return redirect("/offline")
+
+            activity["external_name"] = resp.json()["name"]
+
+        elif resp.json() == "PresentialServicesDB":
+            resp = requests.get("%s/service/%s" % (proxy_url, activity["external_id"]))
+
+            if resp.status_code >= 500:
+                return redirect("/offline")
+
+            activity["external_name"] = resp.json()["name"]
+
+    return render_template(
+        "activities/list.html",
+        activities=activities,
+    )
 
 
 # Evaluations
@@ -177,8 +221,6 @@ def get_activities():
 
     activities = resp.json()
 
-    print(activities)
-
     resp = requests.get("%s/activities/types" % proxy_url)
 
     if resp.status_code >= 500:
@@ -188,34 +230,84 @@ def get_activities():
 
     activities_types = []
     activities_sub_types = []
+    externals = []
 
-    for type in activities_types_info:
-        activities_types.append({"name": type, "value": activities_types_info[type]["id"]})
-        for sub_type in activities_types_info[type]["values"]:
-            activities_sub_types.append(
+    for activity in activities:
+        for type in activities_types_info:
+            if activities_types_info[type]["id"] == activity["type_id"]:
+                activity["type_name"] = type
+
+                if not re.search('"name": "%s"' % type, json.dumps(activities_types), re.M):
+                    activities_types.append(
+                        {
+                            "name": type,
+                            "value": activities_types_info[type]["id"],
+                        }
+                    )
+
+                for sub_type in activities_types_info[type]["values"]:
+                    if activities_types_info[type]["values"][sub_type]["id"] == activity["sub_type_id"]:
+                        activity["sub_type_name"] = sub_type
+
+                        if not re.search('"name": "%s"' % sub_type, json.dumps(activities_sub_types), re.M):
+                            activities_sub_types.append(
+                                {
+                                    "name": sub_type,
+                                    "value": activities_types_info[type]["values"][sub_type]["id"],
+                                    "parent": activities_types_info[type]["id"],
+                                }
+                            )
+
+        resp = requests.get("%s/activity/type/%s/%s/db" % (proxy_url, activity["type_id"], activity["sub_type_id"]))
+
+        if resp.status_code >= 500:
+            return redirect("/offline")
+
+        if resp.json() == "CoursesDB":
+            resp = requests.get("%s/course/%s" % (proxy_url, activity["external_id"]))
+
+            if resp.status_code >= 500:
+                return redirect("/offline")
+
+            activity["external_name"] = resp.json()["name"]
+
+        elif resp.json() == "PresentialServicesDB":
+            resp = requests.get("%s/service/%s" % (proxy_url, activity["external_id"]))
+
+            if resp.status_code >= 500:
+                return redirect("/offline")
+
+            activity["external_name"] = resp.json()["name"]
+
+        if "external_name" in activity and not re.search(
+            '"name": "%s"' % activity["external_name"], json.dumps(externals), re.M
+        ):
+            externals.append(
                 {
-                    "name": sub_type,
-                    "value": activities_types_info[type]["values"][sub_type]["id"],
-                    "parent": activities_types_info[type]["id"],
+                    "name": activity["external_name"],
+                    "value": activity["external_id"],
                 }
             )
 
-    for activity in activities:
-        for type in activities_types:
-            if type["value"] == activity["type_id"]:
-                activity["type_name"] = type["name"]
-
-        for sub_type in activities_sub_types:
-            if sub_type["value"] == activity["sub_type_id"] and sub_type["parent"] == activity["type_id"]:
-                activity["sub_type_name"] = sub_type["name"]
-
     return render_template(
         "activities/list.html",
+        show_filters=True,
         activities=activities,
         activities_types=activities_types,
         activities_sub_types=activities_sub_types,
+        externals=externals,
         active_tab=5,
     )
+
+
+@app.route("/activity/<activity_id>/delete")
+def delete_activity(activity_id):
+    resp = requests.delete("%s/activity/%s" % (proxy_url, activity_id), json=request.form)
+
+    if resp.status_code >= 500:
+        return redirect("/offline")
+
+    return redirect(request.referrer)
 
 
 if __name__ == "__main__":
