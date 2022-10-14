@@ -1,7 +1,6 @@
-from copy import deepcopy
+import requests
 from flask import Flask, request, jsonify
 
-import requests
 
 from aux_functions import *
 
@@ -23,6 +22,12 @@ courses_url = "http://%s:%s" % (configs["c_host"], configs["c_port"])
 activities_url = "http://%s:%s" % (configs["a_host"], configs["a_port"])
 
 app = Flask(__name__)
+
+
+@app.errorhandler(requests.exceptions.ConnectionError)
+def handle_bad_request(e):
+    return jsonify("Bad Gateway"), 502
+
 
 # Services
 
