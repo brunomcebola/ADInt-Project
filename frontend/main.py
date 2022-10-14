@@ -33,6 +33,11 @@ def offline():
     return render_template("offline.html")
 
 
+@app.route("/<path:path>")
+def catch_all(path):
+    return redirect("/")
+
+
 # Services
 
 
@@ -53,6 +58,9 @@ def get_service_evaluations(service_id):
     if resp.status_code >= 500:
         return redirect("/offline")
 
+    if not resp.json():
+        return redirect("/services")
+
     return render_template("evaluations/list.html", evaluations=resp.json())
 
 
@@ -63,7 +71,7 @@ def delete_service(service_id):
     if resp.status_code >= 500:
         return redirect("/offline")
 
-    return redirect(request.referrer)
+    return redirect("/services")
 
 
 @app.route("/service/create", methods=["GET", "POST"])
@@ -99,7 +107,7 @@ def delete_course(course_id):
     if resp.status_code >= 500:
         return redirect("/offline")
 
-    return redirect(request.referrer)
+    return redirect("/courses")
 
 
 @app.route("/course/create", methods=["GET", "POST"])
@@ -123,6 +131,9 @@ def get_course_attendances(course_id):
         return redirect("/offline")
 
     activities = resp.json()
+    
+    if not activities:
+        return redirect("/courses")
 
     resp = requests.get("%s/activities/types" % proxy_url)
 
@@ -187,7 +198,7 @@ def delete_evaluation(evaluation_id):
     if resp.status_code >= 500:
         return redirect("/offline")
 
-    return redirect(request.referrer)
+    return redirect("/evaluations")
 
 
 # Activities
@@ -307,7 +318,7 @@ def delete_activity(activity_id):
     if resp.status_code >= 500:
         return redirect("/offline")
 
-    return redirect(request.referrer)
+    return redirect("/activities")
 
 
 if __name__ == "__main__":
