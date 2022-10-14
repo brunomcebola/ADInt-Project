@@ -67,24 +67,22 @@ def get_evaluations():
 
 @app.route("/evaluations/filter")
 def get_filtered_evaluations():
-    if request.args:
-        filters = request.args.to_dict()
-        allowed_filters = Evaluation.columns()
+    filters = request.args.to_dict()
+    allowed_filters = Evaluation.columns()
 
-        for filter_key in filters:
-            if filter_key not in allowed_filters:
-                return jsonify("Bad Request"), 400
+    for filter_key in filters:
+        if filter_key not in allowed_filters:
+            return jsonify("Bad Request"), 400
 
-        evaluations = session.query(Evaluation)
-        for attr, value in filters.items():
-            evaluations = evaluations.filter(getattr(Evaluation, attr).like("%%%s%%" % value))
+    evaluations = session.query(Evaluation)
+    for attr, value in filters.items():
+        evaluations = evaluations.filter(getattr(Evaluation, attr).like("%%%s%%" % value))
 
-        my_list = []
-        for evaluation in evaluations:
-            my_list.append(evaluation.as_dict())
+    my_list = []
+    for evaluation in evaluations:
+        my_list.append(evaluation.as_dict())
 
-        return jsonify(my_list), 200
-    return jsonify("Bad Request"), 400
+    return jsonify(my_list), 200
 
 
 @app.route("/evaluation/<evaluation_id>")

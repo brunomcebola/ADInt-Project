@@ -2,9 +2,10 @@
 <html>
   <head>
     <title>IST - Big Brother</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
   </head>
   <body>
-    {% include 'page_header.html' %} {% block content %}{% endblock %}
+    {% include 'navbar.html' %} {% block content %}{% endblock %}
   </body>
 </html>

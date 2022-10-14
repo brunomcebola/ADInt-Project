@@ -2,27 +2,29 @@
 <h3>Create service</h3>
 
 <form id="create-service-form" action="/service/create" method="post">
-  <label for="name">Name <span class="mandatory-mark">*</span></label
-  ><br />
+  <label for="name">Name <span class="mandatory-mark">*</span></label>
+  <br />
   <input type="text" id="name" name="name" />
 
   <br /><br />
 
-  <label for="description"
-    >Description <span class="mandatory-mark">*</span></label
-  ><br />
-  <textarea id="description" name="description" rows="12" cols="35"></textarea>
+  <label for="location">Location <span class="mandatory-mark">*</span></label>
+  <br />
+  <select name="location" id="location">
+    <option value="Main building">Main building</option>
+    <option value="Civil building">Civil building</option>
+    <option value="Mathematics building">Mathematics building</option>
+    <option value="Chemistry tower">Chemistry tower</option>
+    <option value="Electrotechnical tower">Electrotechnical tower</option>
+  </select>
 
   <br /><br />
 
-  <label for="location">Location <span class="mandatory-mark">*</span></label
-  ><br />
-  <select name="location" id="location">
-    <option value="Torre de Eletro">Torre de Eletro</option>
-    <option value="Secção de Folhas">Secção de Folhas</option>
-    <option value="Pavilhão de Civil">Pavilhão de Civil</option>
-    <option value="Edifício Central">Edifício Central</option>
-  </select>
+  <label for="description">
+    Description <span class="mandatory-mark">*</span>
+  </label>
+  <br />
+  <textarea id="description" name="description" rows="12" cols="35"></textarea>
 
   <br /><br />
 

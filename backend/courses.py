@@ -66,24 +66,22 @@ def get_courses():
 
 @app.route("/courses/filter")
 def get_filtered_courses():
-    if request.args:
-        filters = request.args.to_dict()
-        allowed_filters = Course.columns()
+    filters = request.args.to_dict()
+    allowed_filters = Course.columns()
 
-        for filter_key in filters:
-            if filter_key not in allowed_filters:
-                return jsonify("Bad Request"), 400
+    for filter_key in filters:
+        if filter_key not in allowed_filters:
+            return jsonify("Bad Request"), 400
 
-        courses = session.query(Course)
-        for attr, value in filters.items():
-            courses = courses.filter(getattr(Course, attr).like("%%%s%%" % value))
+    courses = session.query(Course)
+    for attr, value in filters.items():
+        courses = courses.filter(getattr(Course, attr).like("%%%s%%" % value))
 
-        my_list = []
-        for course in courses:
-            my_list.append(course.as_dict())
+    my_list = []
+    for course in courses:
+        my_list.append(course.as_dict())
 
-        return jsonify(my_list), 200
-    return jsonify("Bad Request"), 400
+    return jsonify(my_list), 200
 
 
 @app.route("/course/<course_id>")

@@ -66,24 +66,22 @@ def get_services():
 
 @app.route("/services/filter")
 def get_filtered_services():
-    if request.args:
-        filters = request.args.to_dict()
-        allowed_filters = PresencialService.columns()
+    filters = request.args.to_dict()
+    allowed_filters = PresencialService.columns()
 
-        for filter_key in filters:
-            if filter_key not in allowed_filters:
-                return jsonify("Bad Request"), 400
+    for filter_key in filters:
+        if filter_key not in allowed_filters:
+            return jsonify("Bad Request"), 400
 
-        services = session.query(PresencialService)
-        for attr, value in filters.items():
-            services = services.filter(getattr(PresencialService, attr).like("%%%s%%" % value))
+    services = session.query(PresencialService)
+    for attr, value in filters.items():
+        services = services.filter(getattr(PresencialService, attr).like("%%%s%%" % value))
 
-        my_list = []
-        for service in services:
-            my_list.append(service.as_dict())
+    my_list = []
+    for service in services:
+        my_list.append(service.as_dict())
 
-        return jsonify(my_list), 200
-    return jsonify("Bad Request"), 400
+    return jsonify(my_list), 200
 
 
 @app.route("/service/<service_id>")

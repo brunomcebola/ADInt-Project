@@ -91,24 +91,22 @@ def get_activities():
 
 @app.route("/activities/filter")
 def get_filtered_activities():
-    if request.args:
-        filters = request.args.to_dict()
-        allowed_filters = Activity.columns()
+    filters = request.args.to_dict()
+    allowed_filters = Activity.columns()
 
-        for filter_key in filters:
-            if filter_key not in allowed_filters:
-                return jsonify("Bad Request"), 400
+    for filter_key in filters:
+        if filter_key not in allowed_filters:
+            return jsonify("Bad Request"), 400
 
-        activities = session.query(Activity)
-        for attr, value in filters.items():
-            activities = activities.filter(getattr(Activity, attr).like("%%%s%%" % value))
+    activities = session.query(Activity)
+    for attr, value in filters.items():
+        activities = activities.filter(getattr(Activity, attr).like("%%%s%%" % value))
 
-        my_list = []
-        for activity in activities:
-            my_list.append(activity.as_dict())
+    my_list = []
+    for activity in activities:
+        my_list.append(activity.as_dict())
 
-        return jsonify(my_list), 200
-    return jsonify("Bad Request"), 400
+    return jsonify(my_list), 200
 
 
 @app.route("/activities/types")

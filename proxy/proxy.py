@@ -40,12 +40,9 @@ def get_services():
 
 @app.route("/services/filter")
 def get_filtered_services():
-    if request.args:
-        req = requests.get("%s/services/filter" % services_url, params=request.args.to_dict(), headers=header)
+    req = requests.get("%s/services/filter" % services_url, params=request.args.to_dict(), headers=header)
 
-        return req.json(), req.status_code
-
-    return jsonify("Bad Request"), 400
+    return req.json(), req.status_code
 
 
 @app.route("/service/<service_id>", methods=["GET"])
@@ -87,12 +84,10 @@ def get_evaluations():
 
 @app.route("/evaluations/filter")
 def get_filtered_evaluations():
-    if request.args:
-        req = requests.get("%s/evaluations/filter" % evaluations_url, params=request.args.to_dict(), headers=header)
 
-        return req.json(), req.status_code
+    req = requests.get("%s/evaluations/filter" % evaluations_url, params=request.args.to_dict(), headers=header)
 
-    return jsonify("Bad Request"), 400
+    return req.json(), req.status_code
 
 
 @app.route("/evaluation/<evaluation_id>", methods=["GET"])
@@ -139,12 +134,9 @@ def get_courses():
 
 @app.route("/courses/filter")
 def get_filtered_courses():
-    if request.args:
-        req = requests.get("%s/courses/filter" % courses_url, params=request.args.to_dict(), headers=header)
+    req = requests.get("%s/courses/filter" % courses_url, params=request.args.to_dict(), headers=header)
 
-        return req.json(), req.status_code
-
-    return jsonify("Bad Request"), 400
+    return req.json(), req.status_code
 
 
 @app.route("/course/<course_id>", methods=["GET"])
@@ -179,12 +171,9 @@ def get_activities():
 
 @app.route("/activities/filter")
 def get_filtered_activities():
-    if request.args:
-        req = requests.get("%s/activities/filter" % activities_url, params=request.args.to_dict(), headers=header)
+    req = requests.get("%s/activities/filter" % activities_url, params=request.args.to_dict(), headers=header)
 
-        return req.json(), req.status_code
-
-    return jsonify("Bad Request"), 400
+    return req.json(), req.status_code
 
 
 @app.route("/activities/types")
