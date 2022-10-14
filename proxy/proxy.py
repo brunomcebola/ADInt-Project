@@ -194,8 +194,8 @@ def get_activities_types():
 
 
 @app.route("/activity/type/<type_id>/<sub_type_id>/db")
-def get_activity_db(type_id, sub_type_i):
-    req = requests.get("%s/activity/type/%s/%s/db" % (activities_url, type_id, sub_type_i), headers=header)
+def get_activity_db(type_id, sub_type_id):
+    req = requests.get("%s/activity/type/%s/%s/db" % (activities_url, type_id, sub_type_id), headers=header)
     return req.json(), req.status_code
 
 

@@ -51,11 +51,7 @@ class Activity(Base):
 
     @classmethod
     def columns(cls):
-        columns = [column.key for column in cls.__table__.columns]
-
-        columns.remove("id")
-
-        return columns
+        return [column.key for column in cls.__table__.columns]
 
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
@@ -122,7 +118,9 @@ def get_activities_types():
 
 @app.route("/activity/type/<type_id>/<sub_type_id>/db")
 def get_activity_db(type_id, sub_type_id):
-    info = get_activity_info(configs["activities"], type_id, sub_type_id)
+    info = get_activity_info(configs["activities"], int(type_id), int(sub_type_id))
+
+    print(info)
 
     if not info:
         return jsonify("Not Found"), 404
@@ -161,6 +159,9 @@ def create_activity():
     if request.is_json and request.data:
         data = {}
         allowed_fields = Activity.columns()
+
+        print(allowed_fields)
+
         allowed_fields.remove("id")
         mandatory_fileds = ["type_id", "sub_type_id", "student_id", "start_time", "stop_time"]
 
@@ -206,25 +207,25 @@ def create_activity():
 def start_activity():
     if request.is_json and request.data:
         data = {}
-        allowed_fields = ["type_id", "sub_type_id", "external_id", "description"]
+        allowed_fields = ["type_id", "sub_type_id", "student_id", "external_id", "description"]
         mandatory_fileds = ["type_id", "sub_type_id", "student_id"]
 
         for key in request.json:  # type: ignore
             if key in allowed_fields:
                 data[key] = request.json[key]  # type: ignore
             else:
-                return jsonify("Bad Request"), 400
+                return jsonify("Bad Request 1"), 400
 
         for field in mandatory_fileds:
             if field not in data:
-                return jsonify("Bad Request"), 400
+                return jsonify("Bad Request 2"), 400
 
         activity_info = get_activity_info(configs["activities"], data["type_id"], data["sub_type_id"])
 
         if activity_info:
 
             if activity_info["external"] and "external_id" not in data:
-                return jsonify("Bad Request"), 400
+                return jsonify("Bad Request 3"), 400
 
             data["start_time"] = datetime.now()
 
@@ -238,9 +239,9 @@ def start_activity():
 
             return jsonify("Created"), 201
 
-        return jsonify("Bad Request"), 400
+        return jsonify("Bad Request 4"), 400
 
-    return jsonify("Bad Request"), 400
+    return jsonify("Bad Request 5"), 400
 
 
 @app.route("/activity/<activity_id>/stop", methods=["PUT"])
