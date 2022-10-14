@@ -116,6 +116,7 @@ def create_evaluation():
         data = {}
         allowed_fields = Evaluation.columns()
         allowed_fields.remove("id")
+        allowed_fields.remove("datetime")
         mandatory_fileds = ["service_id", "rating", "student_id"]
 
         for key in request.json:  # type: ignore
@@ -131,13 +132,7 @@ def create_evaluation():
         if data["rating"] < 1 or data["rating"] > 5:  # type: ignore
             return jsonify("Bad request"), 400
 
-        if "datetime" in data:
-            try:
-                data["datetime"] = datetime.strptime(data["datetime"], "%Y-%m-%dT%H:%MZ")
-            except:
-                return jsonify("Bad Request"), 400
-        else:
-            data["datetime"] = datetime.now()
+        data["datetime"] = datetime.now()
 
         evaluation = Evaluation()
 

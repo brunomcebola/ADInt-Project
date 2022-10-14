@@ -22,11 +22,6 @@ def get_activity_info(activities, type_id, sub_type_id):
     return {}
 
 
-# TODO
-def check_activities_format():
-    return
-
-
 # read and validate configurations
 config_file = "./config/activities.yaml"
 
@@ -45,7 +40,7 @@ class Activity(Base):
     sub_type_id = Column(Integer)
     student_id = Column(Integer)
     start_time = Column(DateTime)
-    stop_time = Column(DateTime)  # TODO
+    stop_time = Column(DateTime)
     external_id = Column(Integer, default=0)
     description = Column(String, default="")
 
@@ -175,6 +170,8 @@ def create_activity():
 
             if activity_info["external"] and "external_id" not in data:
                 return jsonify("Bad Request"), 400
+            elif not activity_info["external"] and "external_id" in data:
+                del data["external_id"]
 
             try:
                 data["start_time"] = datetime.strptime(data["start_time"], "%Y-%m-%dT%H:%MZ")
@@ -219,7 +216,9 @@ def start_activity():
         if activity_info:
 
             if activity_info["external"] and "external_id" not in data:
-                return jsonify("Bad Request 3"), 400
+                return jsonify("Bad Request"), 400
+            elif not activity_info["external"] and "external_id" in data:
+                del data["external_id"]
 
             data["start_time"] = datetime.now()
 
