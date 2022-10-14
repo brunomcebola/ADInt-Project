@@ -1,17 +1,149 @@
+body {
+  margin: 0;
+  padding-top: 47px;
+}
+
 table {
   font-family: arial, sans-serif;
   border-collapse: collapse;
   width: 100%;
 }
 
-td,
-th {
+table td,
+table th {
   border: 1px solid #dddddd;
   text-align: left;
   padding: 8px;
 }
 
-#create-service-form .mandatory-mark,
-#create-course-form .mandatory-mark {
+table td:last-child {
+  width: 1%;
+  white-space: nowrap;
+}
+
+span.mandatory-mark {
   color: red;
 }
+
+button.primary {
+  background-color: #0098d9; /* Green */
+  border: none;
+  color: white;
+  padding: 10px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+button.primary:hover {
+  background-color: #0082ba; /* Green */
+}
+
+button.primary:active {
+  background-color: #006c9a; /* Green */
+}
+
+button.secundary {
+  background-color: #fff; /* Green */
+  border: 2px solid #0098d9;
+  color: #0098d9;
+  padding: 5px 5px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+button.secundary:hover {
+  border: 2px solid #0082ba;
+  color: #0082ba;
+}
+
+button.secundary:active {
+  border: 2px solid #006c9a;
+  color: #006c9a;
+}
+
+button.danger {
+  background-color: #fff; /* Green */
+  border: 2px solid #cd0014;
+  color: #cd0014;
+  padding: 5px 5px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+button.danger:hover {
+  border: 2px solid #b60012;
+  color: #b60012;
+}
+
+button.danger:active {
+  border: 2px solid #97000f;
+  color: #97000f;
+}
+
+.list {
+  margin: 20px;
+}
+
+.list .header {
+  height: 50px;
+}
+
+.list .header h2 {
+  margin: 0;
+  display: inline-block;
+}
+
+.list .header button.primary {
+  float: right;
+}
+
+/*navbar*/
+
+#navbar ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #333;
+  position: fixed;
+  top: 0;
+  width: 100%;
+}
+
+#navbar ul li {
+  float: left;
+}
+
+#navbar ul li a {
+  display: block;
+  color: white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+#navbar ul li a:hover:not(.active) {
+  background-color: #111;
+}
+
+#navbar ul li a.active {
+  background-color: #0098d9;
+}
+
+#home-page h1 {
+  text-align: center;
+}
+

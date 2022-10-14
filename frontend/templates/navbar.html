@@ -1,9 +1,9 @@
-<div>
+<div id="navbar">
   <ul>
-    <li><a href="/">Home</a></li>
-    <li><a href="/services"> Services</a></li>
-    <li><a href="/courses">Courses</a></li>
-    <li><a href="/evaluations">Evaluations</a></li>
-    <li><a href="/activities">Activities</a></li>
+    <li><a href="/" class={% if active_tab == 1 %}"active"{% endif %}>Home</a></li>
+    <li><a href="/services" class={% if active_tab == 2 %}"active"{% endif %}> Services</a></li>
+    <li><a href="/courses" class={% if active_tab == 3 %}"active"{% endif %}>Courses</a></li>
+    <li><a href="/evaluations" class={% if active_tab == 4 %}"active"{% endif %}>Evaluations</a></li>
+    <li><a href="/activities" class={% if active_tab == 5 %}"active"{% endif %}>Activities</a></li>
   </ul>
 </div>

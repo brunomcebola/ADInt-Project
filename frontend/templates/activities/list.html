@@ -1,76 +1,82 @@
 {% extends 'layout.html' %} {% block content %}
-<h3>Activities</h3>
+<div class="list">
+  <div class="header">
+    <h2>Activities</h2>
+  </div>
+  
 
-<table>
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Type</th>
-      <th>Sub Type</th>
-      <th>Student ID</th>
-      <th>External ID</th>
-      <th>Start Time</th>
-      <th>Stop Time</th>
-      <th>Description</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for activity in activities %}
-    <tr>
-      <th>{{activity.id}}</th>
-      <th>{{activity.type_name}}</th>
-      <th>{{activity.sub_type_name}}</th>
-      <th>{{activity.student_id}}</th>
-      <th>{{activity.external_id}}</th>
-      <th>{{activity.start_time}}</th>
-      <th>{{activity.stop_time}}</th>
-      <th>{{activity.description}}</th>
-      <th>
-        <a href={{"/activity/%d/delete" % activity.id}}><button>Delete activity</button></a>
-      </th>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Type</th>
+        <th>Sub Type</th>
+        <th>Student ID</th>
+        <th>External ID</th>
+        <th>Start Time</th>
+        <th>Stop Time</th>
+        <th>Description</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for activity in activities %}
+      <tr>
+        <td>{{activity.id}}</td>
+        <td>{{activity.type_name}}</td>
+        <td>{{activity.sub_type_name}}</td>
+        <td>{{activity.student_id}}</td>
+        <td>{{activity.external_id}}</td>
+        <td>{{activity.start_time}}</td>
+        <td>{{activity.stop_time}}</td>
+        <td>{{activity.description}}</td>
+        <td>
+          <a href={{"/activity/%d/delete" % activity.id}}><button class="danger">Delete activity</button></a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  
+  <form id="filter-activities-form" action="/activities" method="post">
+    <label for="filter_type">Type</label>
+    <br />
+    <input type="checkbox" name="filter_type"/>
+    <select name="type_id">
+      {% for type in activities_types %}
+      <option value={{type["value"]}}>{{type["name"]}}</option>
+      {% endfor %}
+    </select>
+  
+    <br /><br />
+  
+    <label for="filter_sub_type">Sub Type</label>
+    <br />
+    <input type="checkbox" name="filter_sub_type"/>
+    <select name="sub_type_id">
+      {% for sub_type in activities_sub_types %}
+      <option value={{sub_type["value"]}}>{{sub_type["name"]}}</option>
+      {% endfor %}
+    </select>
+  
+    <br /><br />
+  
+    <label for="filter_external">External id</label>
+    <br />
+    <input type="checkbox" name="filter_external"/>
+    <input type="text" name="external_id"/>
+  
+    <br /><br />
+  
+    <label for="filter_student">Studend id</label>
+    <br />
+    <input type="checkbox" name="filter_student"/>
+    <input type="text" name="student_id"/>
+  
+    <br /><br />
+  
+    <input type="submit" value="Filter" />
+  </form>
+</div>
 
-<form id="filter-activities-form" action="/activities" method="post">
-  <label for="filter_type">Type</label>
-  <br />
-  <input type="checkbox" name="filter_type"/>
-  <select name="type_id">
-    {% for type in activities_types %}
-    <option value={{type["value"]}}>{{type["name"]}}</option>
-    {% endfor %}
-  </select>
-
-  <br /><br />
-
-  <label for="filter_sub_type">Sub Type</label>
-  <br />
-  <input type="checkbox" name="filter_sub_type"/>
-  <select name="sub_type_id">
-    {% for sub_type in activities_sub_types %}
-    <option value={{sub_type["value"]}}>{{sub_type["name"]}}</option>
-    {% endfor %}
-  </select>
-
-  <br /><br />
-
-  <label for="filter_external">External id</label>
-  <br />
-  <input type="checkbox" name="filter_external"/>
-  <input type="text" name="external_id"/>
-
-  <br /><br />
-
-  <label for="filter_student">Studend id</label>
-  <br />
-  <input type="checkbox" name="filter_student"/>
-  <input type="text" name="student_id"/>
-
-  <br /><br />
-
-  <input type="submit" value="Filter" />
-</form>
 {% endblock %}

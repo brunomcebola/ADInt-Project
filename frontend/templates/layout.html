@@ -6,6 +6,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
   </head>
   <body>
-    {% include 'navbar.html' %} {% block content %}{% endblock %}
+    {% with active_tab=active_tab %}
+    {% include 'navbar.html' %} 
+    {% endwith %}
+    {% block content %}{% endblock %}
   </body>
 </html>

@@ -23,7 +23,7 @@ def handle_bad_request(e):
 
 @app.route("/")
 def home():
-    return render_template("home.html")
+    return render_template("home.html", active_tab=1)
 
 
 @app.route("/offline")
@@ -41,7 +41,7 @@ def get_services():
     if resp.status_code >= 500:
         return redirect("/offline")
 
-    return render_template("services/list.html", services=resp.json())
+    return render_template("services/list.html", services=resp.json(), active_tab=2)
 
 
 @app.route("/service/<service_id>/evaluations")
@@ -77,19 +77,6 @@ def create_service():
         return render_template("services/create.html")
 
 
-# Evaluations
-
-
-@app.route("/evaluation/<evaluation_id>/delete")
-def delete_evaluation(evaluation_id):
-    resp = requests.delete("%s/evaluation/%s" % (proxy_url, evaluation_id), json=request.form)
-
-    if resp.status_code >= 500:
-        return redirect("/offline")
-
-    return redirect(request.referrer)
-
-
 # Courses
 
 
@@ -100,7 +87,7 @@ def get_courses():
     if resp.status_code >= 500:
         return redirect("/offline")
 
-    return render_template("courses/list.html", courses=resp.json())
+    return render_template("courses/list.html", courses=resp.json(), active_tab=3)
 
 
 @app.route("/course/<course_id>/delete")
@@ -136,6 +123,29 @@ def create_course():
 #     return render_template("activities/list.html", activities=resp.json())
 
 
+# Evaluations
+
+
+@app.route("/evaluations")
+def get_evaluations():
+    resp = requests.get("%s/evaluations" % proxy_url)
+
+    if resp.status_code >= 500:
+        return redirect("/offline")
+
+    return render_template("evaluations/list.html", evaluations=resp.json(), active_tab=4)
+
+
+@app.route("/evaluation/<evaluation_id>/delete")
+def delete_evaluation(evaluation_id):
+    resp = requests.delete("%s/evaluation/%s" % (proxy_url, evaluation_id), json=request.form)
+
+    if resp.status_code >= 500:
+        return redirect("/offline")
+
+    return redirect(request.referrer)
+
+
 # Activities
 
 
@@ -166,7 +176,7 @@ def get_activities():
         return redirect("/offline")
 
     activities = resp.json()
-    
+
     print(activities)
 
     resp = requests.get("%s/activities/types" % proxy_url)
@@ -204,6 +214,7 @@ def get_activities():
         activities=activities,
         activities_types=activities_types,
         activities_sub_types=activities_sub_types,
+        active_tab=5,
     )
 
 

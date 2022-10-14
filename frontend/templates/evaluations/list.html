@@ -1,30 +1,37 @@
 {% extends 'layout.html' %} {% block content %}
-<h3>Evaluations</h3>
+<div class="list">
+  <div class="header">
+    <h2>Evaluations</h2>
+  </div>
 
-<table>
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Service ID</th>
-      <th>Rating</th>
-      <th>Description</th>
-      <th>Datetime</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for evaluation in evaluations %}
-    <tr>
-      <th>{{evaluation.id}}</th>
-      <th>{{evaluation.service_id}}</th>
-      <th>{{evaluation.rating}}</th>
-      <th>{{evaluation.description}}</th>
-      <th>{{evaluation.datetime}}</th>
-      <th>
-        <a href={{"/evaluation/%d/delete" % evaluation.id}}><button>Delete evaluation</button></a>
-      </th>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Service ID</th>
+        <th>Student ID</th>
+        <th>Rating</th>
+        <th>Datetime</th>
+        <th>Description</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for evaluation in evaluations %}
+      <tr>
+        <td>{{evaluation.id}}</td>
+        <td>{{evaluation.service_id}}</td>
+        <td>{{evaluation.student_id}}</td>
+        <td>{{evaluation.rating}}</td>
+        <td>{{evaluation.datetime}}</td>
+        <td>{{evaluation.description}}</td>
+        <td>
+          <a href={{"/evaluation/%d/delete" % evaluation.id}}><button class="danger">Delete evaluation</button></a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
 {% endblock %}

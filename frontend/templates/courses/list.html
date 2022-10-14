@@ -1,35 +1,41 @@
 {% extends 'layout.html' %} {% block content %}
-<h3>Courses</h3>
+<div class="list">
+  <div class="header">
+    <h2>Courses list</h2>
 
-<a href="/course/create">
-  <button>Create course</button>
-</a>
+    <a href="/course/create">
+      <button class="primary">Create course</button>
+    </a>
+  </div>
+ 
 
-<table>
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Name</th>
-      <th>Professor</th>
-      <th>School year</th>
-      <th>Description</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for course in courses %}
-    <tr>
-      <th>{{course.id}}</th>
-      <th>{{course.name}}</th>
-      <th>{{course.professor}}</th>
-      <th>{{course.school_year}}</th>
-      <th>{{course.description}}</th>
-      <th>
-        <a href={{"/course/%d/attendances" % course.id}}><button>View attendances</button></a>
-        <a href={{"/course/%d/delete" % course.id}}><button>Delete course</button></a>
-      </th>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Professor</th>
+        <th>School year</th>
+        <th>Description</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for course in courses %}
+      <tr>
+        <td>{{course.id}}</td>
+        <td>{{course.name}}</td>
+        <td>{{course.professor}}</td>
+        <td>{{course.school_year}}</td>
+        <td>{{course.description}}</td>
+        <td>
+          <a href={{"/course/%d/attendances" % course.id}}><button class="secundary">View attendances</button></a>
+          <a href={{"/course/%d/delete" % course.id}}><button class="danger">Delete course</button></a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
 {% endblock %}

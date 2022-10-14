@@ -21,6 +21,7 @@ class Evaluation(Base):
     __tablename__ = "evaluations"
     id = Column(Integer, primary_key=True)
     service_id = Column(Integer)
+    student_id = Column(Integer)
     rating = Column(Integer)
     datetime = Column(DateTime)
     description = Column(String, default="")
@@ -115,7 +116,7 @@ def create_evaluation():
         data = {}
         allowed_fields = Evaluation.columns()
         allowed_fields.remove("id")
-        mandatory_fileds = ["service_id", "rating"]
+        mandatory_fileds = ["service_id", "rating", "student_id"]
 
         for key in request.json:  # type: ignore
             if key in allowed_fields:

@@ -1,33 +1,39 @@
 {% extends 'layout.html' %} {% block content %}
-<h3>Services</h3>
+<div class="list">
+  <div class="header">
+    <h2>Services list</h2>
 
-<a href="/service/create">
-  <button>Create service</button>
-</a>
+    <a href="/service/create">
+      <button class="primary">Create service</button>
+    </a>
+  </div>
+  
 
-<table>
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Name</th>
-      <th>Description</th>
-      <th>Location</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for service in services %}
-    <tr>
-      <th>{{service.id}}</th>
-      <th>{{service.name}}</th>
-      <th>{{service.description}}</th>
-      <th>{{service.location}}</th>
-      <th>
-        <a href={{"/service/%d/evaluations" % service.id}}><button>View evaluations</button></a>
-        <a href={{"/service/%d/delete" % service.id}}><button>Delete service</button></a>
-      </th>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Location</th>
+        <th>Description</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for service in services %}
+      <tr>
+        <td>{{service.id}}</td>
+        <td>{{service.name}}</td>
+        <td>{{service.location}}</td>
+        <td>{{service.description}}</td>
+        <td>
+          <a href={{"/service/%d/evaluations" % service.id}}><button class="secundary">View evaluations</button></a>
+          <a href={{"/service/%d/delete" % service.id}}><button class="danger">Delete service</button></a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
 {% endblock %}
