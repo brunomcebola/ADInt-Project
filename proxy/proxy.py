@@ -3,7 +3,7 @@ import requests
 from flask import Flask, jsonify
 from dotenv import load_dotenv
 
-from proxy.middleware import *
+from middleware import *
 
 from routes.courses import courses
 from routes.activities import activities
