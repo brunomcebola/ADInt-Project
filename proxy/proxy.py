@@ -28,6 +28,9 @@ app = Flask(__name__)
 def handle_bad_request(e):
     return jsonify("Bad Gateway"), 502
 
+@app.before_request
+def before_request():
+    return check_permission()
 
 # Services
 
@@ -97,12 +100,14 @@ def get_evaluation(evaluation_id):
 
 
 @app.route("/evaluation/<evaluation_id>", methods=["DELETE"])
+@check_admin
 def delete_evaluation(evaluation_id):
     req = requests.delete("%s/evaluation/%s" % (evaluations_url, evaluation_id), headers=header)
     return req.json(), req.status_code
 
 
 @app.route("/evaluation/create", methods=["POST"])
+@check_user
 def create_evaluation():
     if request.is_json and request.data:
         mandatory_fileds = ["service_id"]
@@ -146,12 +151,14 @@ def get_course(course_id):
 
 
 @app.route("/course/<course_id>", methods=["DELETE"])
+@check_admin
 def delete_course(course_id):
     req = requests.delete("%s/course/%s" % (courses_url, course_id), headers=header)
     return req.json(), req.status_code
 
 
 @app.route("/course/create", methods=["POST"])
+@check_admin
 def create_course():
     if request.is_json and request.data:
         req = requests.post("%s/course/create" % courses_url, json=request.json, headers=header)
@@ -176,12 +183,14 @@ def get_activity_type(type_id, sub_type_id):
 
 
 @app.route("/activity/type/<type_id>/<sub_type_id>", methods=["DELETE"])
+@check_admin
 def delete_activity_type(type_id, sub_type_id):
     req = requests.delete("%s/activity/type/%s/%s" % (activities_url, type_id, sub_type_id), headers=header)
     return req.json(), req.status_code
 
 
 @app.route("/activity/type/create", methods=["POST"])
+@check_admin
 def create_activity_type():
     # TODO: check if db exists
     req = requests.post("%s/activity/type/create" % activities_url, json=request.json, headers=header)
@@ -210,12 +219,14 @@ def get_activity(activity_id):
 
 
 @app.route("/activity/<activity_id>", methods=["DELETE"])
+@check_admin
 def delete_activity(activity_id):
     req = requests.delete("%s/activity/%s" % (activities_url, activity_id), headers=header)
     return req.json(), req.status_code
 
 
 @app.route("/activity/create", methods=["POST"])
+@check_user
 @check_json
 def create_activity():
     mandatory_fileds = ["type_id", "sub_type_id"]
@@ -252,6 +263,7 @@ def create_activity():
 
 
 @app.route("/activity/start", methods=["POST"])
+@check_user
 @check_json
 def start_activity():
 
@@ -289,6 +301,7 @@ def start_activity():
 
 
 @app.route("/activity/<activity_id>/stop", methods=["PUT"])
+@check_user
 def stop_activity(activity_id):
     req = requests.put("%s/activity/%s/stop" % (activities_url, activity_id), headers=header)
     return req.json(), req.status_code

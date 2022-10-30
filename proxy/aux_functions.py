@@ -15,6 +15,37 @@ def check_json(func):
     return decorated_function
 
 
+def check_permission():
+    if "ADMIN_TOKEN" not in request.headers and "USER_TOKEN" not in request.headers:
+        return jsonify("Neither an Admin nor an User Authentication Required"), 407
+
+def check_admin(func):
+    @wraps(func)
+    def decorated_function(*args, **kwargs):
+        if "ADMIN_TOKEN" not in request.headers:
+            return jsonify("Admin Authentication Required"), 407
+
+        if request.headers["ADMIN_TOKEN"] != "admin":
+            return jsonify("Unauthorized"), 401
+        
+        return func(*args, **kwargs)
+
+    return decorated_function
+
+
+def check_user(func):
+    @wraps(func)
+    def decorated_function(*args, **kwargs):
+        if "USER_TOKEN" not in request.headers:
+            return jsonify("User Authentication Required"), 407
+
+        if request.headers["USER_TOKEN"] != "user":
+            return jsonify("Unauthorized"), 401
+        
+        return func(*args, **kwargs)
+        
+    return decorated_function
+
 def read_yaml(file_path: str):
     try:
         with open(file_path, "r") as stream:
