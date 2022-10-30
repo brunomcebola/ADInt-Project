@@ -7,6 +7,7 @@ table {
   font-family: arial, sans-serif;
   border-collapse: collapse;
   width: 100%;
+  margin-bottom: 20px;
 }
 
 table td,
@@ -93,15 +94,18 @@ button.danger:active {
   color: #97000f;
 }
 
-.list {
+.list,
+.create {
   margin: 20px;
 }
 
-.list .header {
+.list .header,
+.create .header {
   height: 50px;
 }
 
-.list .header h2 {
+.list .header h2,
+.create .header h2 {
   margin: 0;
   display: inline-block;
 }
@@ -110,7 +114,18 @@ button.danger:active {
   float: right;
 }
 
-/*navbar*/
+.filters {
+  margin-bottom: 20px;
+}
+
+.filters p {
+  margin: 0;
+}
+
+.filters div {
+  float: left;
+  margin-right: 10px;
+}
 
 #navbar ul {
   list-style-type: none;
@@ -146,4 +161,3 @@ button.danger:active {
 #home-page h1 {
   text-align: center;
 }
-

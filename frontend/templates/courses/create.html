@@ -1,34 +1,44 @@
 {% extends 'layout.html' %} {% block content %}
-<h3>Create course</h3>
+<div class="create">
+  <div class="header">
+    <h2>Create course</h2>
+  </div>
 
-<form id="create-course-form" action="/course/create" method="post">
-  <label for="name">Name <span class="mandatory-mark">*</span></label
-  ><br />
-  <input type="text" id="name" name="name" />
+  <form action="/course/create" method="post">
+    <label for="name">Name <span class="mandatory-mark">*</span></label
+    ><br />
+    <input type="text" id="name" name="name" />
 
-  <br /><br />
+    <br /><br />
 
-  <label for="professor">Professor <span class="mandatory-mark">*</span></label
-  ><br />
-  <input type="text" id="professor" name="professor" />
+    <label for="professor"
+      >Professor <span class="mandatory-mark">*</span></label
+    ><br />
+    <input type="text" id="professor" name="professor" />
 
-  <br /><br />
+    <br /><br />
 
-  <label for="school_year"
-    >School year <span class="mandatory-mark">*</span></label
-  ><br />
-  <input type="text" id="school_year" name="school_year" />
+    <label for="school_year"
+      >School year <span class="mandatory-mark">*</span></label
+    ><br />
+    <input type="text" id="school_year" name="school_year" />
 
-  <br /><br />
+    <br /><br />
 
-  <label for="description"
-    >Description <span class="mandatory-mark">*</span></label
-  ><br />
-  <textarea id="description" name="description" rows="12" cols="35"></textarea>
+    <label for="description"
+      >Description <span class="mandatory-mark">*</span></label
+    ><br />
+    <textarea
+      id="description"
+      name="description"
+      rows="12"
+      cols="35"
+    ></textarea>
 
-  <br /><br />
+    <br /><br />
 
-  <input type="submit" value="Create course" />
-</form>
+    <button type="submit" class="primary">Create course</button>
+  </form>
+</div>
 
 {% endblock %}

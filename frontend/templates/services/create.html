@@ -1,34 +1,43 @@
 {% extends 'layout.html' %} {% block content %}
-<h3>Create service</h3>
+<div class="create">
+  <div class="header">
+    <h2>Create service</h2>
+  </div>
 
-<form id="create-service-form" action="/service/create" method="post">
-  <label for="name">Name <span class="mandatory-mark">*</span></label>
-  <br />
-  <input type="text" id="name" name="name" />
+  <form action="/service/create" method="post">
+    <label for="name">Name <span class="mandatory-mark">*</span></label>
+    <br />
+    <input type="text" id="name" name="name" />
 
-  <br /><br />
+    <br /><br />
 
-  <label for="location">Location <span class="mandatory-mark">*</span></label>
-  <br />
-  <select name="location" id="location">
-    <option value="Main building">Main building</option>
-    <option value="Civil building">Civil building</option>
-    <option value="Mathematics building">Mathematics building</option>
-    <option value="Chemistry tower">Chemistry tower</option>
-    <option value="Electrotechnical tower">Electrotechnical tower</option>
-  </select>
+    <label for="location">Location <span class="mandatory-mark">*</span></label>
+    <br />
+    <select name="location" id="location">
+      <option value="Main building">Main building</option>
+      <option value="Civil building">Civil building</option>
+      <option value="Mathematics building">Mathematics building</option>
+      <option value="Chemistry tower">Chemistry tower</option>
+      <option value="Electrotechnical tower">Electrotechnical tower</option>
+    </select>
 
-  <br /><br />
+    <br /><br />
 
-  <label for="description">
-    Description <span class="mandatory-mark">*</span>
-  </label>
-  <br />
-  <textarea id="description" name="description" rows="12" cols="35"></textarea>
+    <label for="description">
+      Description <span class="mandatory-mark">*</span>
+    </label>
+    <br />
+    <textarea
+      id="description"
+      name="description"
+      rows="12"
+      cols="35"
+    ></textarea>
 
-  <br /><br />
+    <br /><br />
 
-  <input type="submit" value="Create service" />
-</form>
+    <button type="submit" class="primary">Create service</button>
+  </form>
+</div>
 
 {% endblock %}
