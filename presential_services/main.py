@@ -1,18 +1,25 @@
-from email.policy import default
-from sqlalchemy.orm import sessionmaker
+import os
+
 from flask import Flask, request, jsonify
-from sqlalchemy.ext.declarative import declarative_base
+from dotenv import load_dotenv
 from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
 
-from aux_functions import *
+from middlewares import *
 
-# read and validate configurations
-config_file = "./config/presential_services.yaml"
 
-configs = read_yaml(config_file)
+mandatory_params = [
+    "HOST",
+    "PORT",
+    "DB_NAME",
+]
 
-validate_yaml(configs, ["db_path", "db_name", "host", "port"], config_file)
+load_dotenv()
 
+for param in mandatory_params:
+    if not os.getenv(param):
+        raise SystemExit("[ENV] Parameter %s is mandatory" % param)
 
 # create DB and table
 Base = declarative_base()
@@ -33,7 +40,7 @@ class PresencialService(Base):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
-DATABASE_FILE = configs["db_path"].rstrip("/") + "/" + configs["db_name"] + ".sqlite"
+DATABASE_FILE = str(os.getenv("DB_NAME")).strip() + ".sqlite"
 
 engine = create_engine("sqlite:///%s" % (DATABASE_FILE), echo=False)
 
@@ -143,4 +150,4 @@ def create_service():
 
 
 if __name__ == "__main__":
-    app.run(host=configs["host"], port=configs["port"], debug=True)
+    app.run(host=os.getenv("HOST"), port=int(str(os.getenv("PORT"))), debug=True)

@@ -1,17 +1,41 @@
+import os
+import yaml
+
 from flask import Flask, request, jsonify
+from dotenv import load_dotenv
 from datetime import datetime
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from aux_functions import *
+from middlewares import *
+
+mandatory_params = [
+    "HOST",
+    "PORT",
+    "DB_NAME",
+]
+
+load_dotenv()
+
+for param in mandatory_params:
+    if not os.getenv(param):
+        raise SystemExit("[ENV] Parameter %s is mandatory" % param)
 
 # read and validate configurations
-config_file = "./config/activities.yaml"
+config_file = "activities.yaml"
 
-configs = read_yaml(config_file)
+try:
+    with open(config_file, "r") as stream:
+        try:
+            configs = yaml.safe_load(stream)
 
-validate_yaml(configs, ["db_path", "db_name", "host", "port", "activities"], config_file)
+        except:
+            raise SystemExit("Erro ao ler ficheiro de configurações (%s)." % config_file)
+except:
+    raise SystemExit("Ficheiro de configurações (%s) não encontrado." % config_file)
+
+
 
 # create DB and table
 Base = declarative_base()

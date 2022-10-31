@@ -3,24 +3,25 @@ import requests
 from flask import Flask, jsonify
 from dotenv import load_dotenv
 
-from middleware import *
+from middlewares import *
 
 from routes.courses import courses
 from routes.activities import activities
 from routes.evaluations import evaluations
 from routes.presential_services import presential_services
 
-load_dotenv()
 
 mandatory_params = [
-    "PROXY_HOST",
-    "PROXY_PORT",
+    "HOST",
+    "PORT",
     "TOKEN",
     "COURSES_URL",
     "ACTIVITIES_URL",
     "EVALUATIONS_URL",
     "PRESENTIAL_SERVICES_URL",
 ]
+
+load_dotenv()
 
 for param in mandatory_params:
     if not os.getenv(param):
@@ -40,4 +41,4 @@ def handle_bad_request(e):
 
 
 if __name__ == "__main__":
-    app.run(host=os.getenv("PROXY_HOST"), port=int(str(os.getenv("PROXY_PORT"))), debug=True)
+    app.run(host=os.getenv("HOST"), port=int(str(os.getenv("PORT"))), debug=True)

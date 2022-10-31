@@ -2,7 +2,7 @@ import os
 import requests
 from flask import Blueprint, request, jsonify
 
-from middleware import *
+from middlewares import *
 
 activities = Blueprint("activities", __name__)
 

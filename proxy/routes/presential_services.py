@@ -2,7 +2,7 @@ import os
 import requests
 from flask import Blueprint, request, jsonify
 
-from middleware import *
+from middlewares import *
 
 presential_services = Blueprint("presential_services", __name__)
 
