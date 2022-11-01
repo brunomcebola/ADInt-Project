@@ -77,7 +77,7 @@ class Activity(Base):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
-DATABASE_FILE = configs["db_path"].rstrip("/") + "/" + configs["db_name"] + ".sqlite"
+DATABASE_FILE = str(os.getenv("DB_NAME")).strip() + ".sqlite"
 
 engine = create_engine("sqlite:///%s" % (DATABASE_FILE), echo=False)
 
@@ -375,4 +375,4 @@ def stop_activity(activity_id):
 
 
 if __name__ == "__main__":
-    app.run(host=configs["host"], port=configs["port"], debug=True)
+    app.run(host=os.getenv("HOST"), port=int(str(os.getenv("PORT"))), debug=True)

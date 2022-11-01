@@ -1,20 +1,27 @@
+import os
 import re
-from flask import Flask, render_template, request, redirect
-import requests
 import json
+import requests
 
-from aux_functions import *
+from dotenv import load_dotenv
+from flask import Flask, render_template, request, redirect
 
 header = {"ADMIN_TOKEN": "admin"}
 
-# read and validate configurations
-config_file = "./config.yaml"
+mandatory_params = [
+    "HOST",
+    "PORT",
+    "PROXY_URL"
+]
 
-configs = read_yaml(config_file)
+load_dotenv()
 
-validate_yaml(configs, ["host", "port", "proxy_host", "proxy_port"], config_file)
+for param in mandatory_params:
+    if not os.getenv(param):
+        raise SystemExit("[ENV] Parameter %s is mandatory" % param)
 
-proxy_url = "http://%s:%s" % (configs["proxy_host"], configs["proxy_port"])
+
+proxy_url = os.getenv("PROXY_URL")
 
 app = Flask(__name__)
 
@@ -126,13 +133,15 @@ def create_course():
 
 @app.route("/course/<course_id>/attendances")
 def get_course_attendances(course_id):
-    resp = requests.get("%s/activities/filter?type_id=2&sub_type_id=1&external_id=%s" % (proxy_url, course_id), headers=header)
+    resp = requests.get(
+        "%s/activities/filter?type_id=2&sub_type_id=1&external_id=%s" % (proxy_url, course_id), headers=header
+    )
 
     if resp.status_code >= 500:
         return redirect("/offline")
 
     activities = resp.json()
-    
+
     if not activities:
         return redirect("/courses")
 
@@ -152,7 +161,9 @@ def get_course_attendances(course_id):
                     if activities_types_info[type]["values"][sub_type]["id"] == activity["sub_type_id"]:
                         activity["sub_type_name"] = sub_type
 
-        resp = requests.get("%s/activity/type/%s/%s/db" % (proxy_url, activity["type_id"], activity["sub_type_id"]), headers=header)
+        resp = requests.get(
+            "%s/activity/type/%s/%s/db" % (proxy_url, activity["type_id"], activity["sub_type_id"]), headers=header
+        )
 
         if resp.status_code >= 500:
             return redirect("/offline")
@@ -224,8 +235,6 @@ def get_activities():
         if "filter_student" in request.form:
             query = query + "student_id=" + request.form["student_id"] + "&"
 
-        print("%s/activities/filter?%s" % (proxy_url, query), headers=header)
-
         resp = requests.get("%s/activities/filter?%s" % (proxy_url, query), headers=header)
 
     if resp.status_code >= 500:
@@ -270,7 +279,9 @@ def get_activities():
                                 }
                             )
 
-        resp = requests.get("%s/activity/type/%s/%s/db" % (proxy_url, activity["type_id"], activity["sub_type_id"]), headers=header)
+        resp = requests.get(
+            "%s/activity/type/%s/%s/db" % (proxy_url, activity["type_id"], activity["sub_type_id"]), headers=header
+        )
 
         if resp.status_code >= 500:
             return redirect("/offline")
@@ -323,4 +334,4 @@ def delete_activity(activity_id):
 
 
 if __name__ == "__main__":
-    app.run(host=configs["host"], port=configs["port"], debug=True)
+    app.run(host=os.getenv("HOST"), port=int(str(os.getenv("PORT"))), debug=True)
