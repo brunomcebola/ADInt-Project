@@ -1,0 +1,38 @@
+body {
+  margin: 20px
+}
+
+h1 {
+  text-align: center;
+}
+
+.ui.tabular.menu {
+  margin: 14px 0 0 0;
+}
+
+.ui.tabular.menu .item {
+  width: 33.33%;
+  cursor: pointer;
+}
+
+.ui.tabular.menu .item:hover{
+  background-color: #f7f7f7;
+}
+
+.ui.tabular.menu .item.active{
+  background-color: #f1f1f1;
+}
+
+.ui.tab {
+  padding: 20px;
+  background-color: #f1f1f1;
+  border-left: 1px solid #D4D4D5;
+  border-right: 1px solid #D4D4D5;
+  border-bottom: 1px solid #D4D4D5;
+  border-bottom-left-radius: 0.28571429rem;
+  border-bottom-right-radius: 0.28571429rem;
+}
+
+span.required {
+  color: red
+}

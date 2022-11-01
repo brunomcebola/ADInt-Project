@@ -38,13 +38,18 @@
     <div class="field">
       <h3>Activity type <span class="required">*</span></h3>
       {% for activity in activities_types[activity_type]["options"]%}
-        <div class="ui checkbox">
-          <input type="radio" name="sub_type_id" value="{{activity["id"]}}">
-          <label >{{activity["name"]}}</label>
-        </div>
-        <br />
+      <div class="ui checkbox">
+        <input type="radio" name="sub_type_id" value="{{activity["id"]}}">
+        <label style="margin-right: 20px; padding-left: 20px">{{activity["name"]}}</label>
+      </div>
       {% endfor %}
     </div>
+
+    <div class="field">
+      <h3>Description</h3>
+      <textarea name="description"></textarea>
+    </div>
+
     <button class="ui button primary" type="submit">
       Save activity
     </button>
@@ -116,6 +121,8 @@
         fields.stop_time = new Date(fields.stop_time).toISOString()
         fields.type_id = type_id
 
+        console.log(fields)
+
         await new Promise(resolve => {
           setTimeout(() => {
             resolve()
@@ -124,6 +131,10 @@
 
         $(this).removeClass("loading");
         $("#success_" + type_id).removeClass("hidden");
+
+        setTimeout(() => {
+          $("#success_" + type_id).addClass("hidden");
+        }, 5000);
 
         $(this).form('clear')
       }
