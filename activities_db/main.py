@@ -270,8 +270,8 @@ def create_activity():
             del data["external_id"]
 
         try:
-            data["start_time"] = datetime.strptime(data["start_time"], "%Y-%m-%dT%H:%MZ")
-            data["stop_time"] = datetime.strptime(data["stop_time"], "%Y-%m-%dT%H:%MZ")
+            data["start_time"] = datetime.strptime(data["start_time"], "%Y-%m-%dT%H:%M:%SZ")
+            data["stop_time"] = datetime.strptime(data["stop_time"], "%Y-%m-%dT%H:%M:%SZ")
         except:
             return jsonify("Bad Request"), 400
 
@@ -286,69 +286,6 @@ def create_activity():
         return jsonify("Created"), 201
 
     return jsonify("Activity type does not exist"), 400
-
-
-@app.route("/activity/start", methods=["POST"])
-@check_json
-def start_activity():
-    data = {}
-    allowed_fields = [
-        "type_id",
-        "sub_type_id",
-        "student_id",
-        "external_id",
-        "description",
-    ]
-    mandatory_fileds = ["type_id", "sub_type_id", "student_id"]
-
-    for key in request.json:  # type: ignore
-        if key in allowed_fields:
-            data[key] = request.json[key]  # type: ignore
-        else:
-            return jsonify("Bad Request 1"), 400
-
-    for field in mandatory_fileds:
-        if field not in data:
-            return jsonify("Bad Request 2"), 400
-
-    activity_type = session.query(ActivityType).get((data["type_id"], data["sub_type_id"]))
-
-    if activity_type:
-
-        activity_type = activity_type.as_dict()
-
-        if activity_type["is_external"] and "external_id" not in data:
-            return jsonify("Bad Request"), 400
-        elif not activity_type["is_external"] and "external_id" in data:
-            del data["external_id"]
-
-        data["start_time"] = datetime.now()
-
-        activity = Activity()
-
-        for key, value in data.items():
-            setattr(activity, key, value)
-
-        session.add(activity)
-        session.commit()
-
-        return jsonify("Created"), 201
-
-    return jsonify("Bad Request 4"), 400
-
-
-@app.route("/activity/<activity_id>/stop", methods=["PUT"])
-def stop_activity(activity_id):
-    activity = session.query(Activity).get(activity_id)
-
-    if getattr(activity, "stop_time"):
-        return jsonify("Bad Request"), 400
-
-    setattr(activity, "stop_time", datetime.now())
-
-    session.commit()
-
-    return jsonify("OK"), 200
 
 
 ################################

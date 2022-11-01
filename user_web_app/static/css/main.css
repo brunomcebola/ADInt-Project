@@ -1,0 +1,22 @@
+h1 {
+  text-align: center;
+}
+
+.ui.tabular.menu .item {
+  width: 30%;
+}
+
+.ui.tab {
+  margin: 0 20px;
+}
+
+.calendar-wrap {
+  display: inline-block;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.calendar-wrap .calendar {
+  width: 50%;
+  float: left;
+}

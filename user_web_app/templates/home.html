@@ -1,13 +1,75 @@
 {% extends 'layout.html' %} {% block content %}
 <h1>Welcome to IST - Big Brother</h1>
 <div class="ui tabular menu">
-  <div class="item" data-tab="tab-name">Tab Name</div>
-  <div class="item" data-tab="tab-name2">Tab Name 2</div>
+  {% for activity_type in activities_types %}
+  <div class="item" data-tab="{{activities_types[activity_type]["id"]}}"><h2>{{activity_type}}</h2></div>
+  {% endfor %}
 </div>
-<div class="ui tab" data-tab="tab-name">grge</div>
-<div class="ui tab" data-tab="tab-name2">lutlt</div>
+
+{% for activity_type in activities_types %}
+<div class="ui tab" data-tab="{{activities_types[activity_type]["id"]}}">
+  <form class="activity_form">
+    <input name="type_id" value="{{activities_types[activity_type]["id"]}}" type="hidden"/>
+
+    <div class="calendar-wrap">
+      <div class="ui calendar" id="start_time">
+        <h3>Start Time</h3>
+        <div class="ui input left icon">
+          <i class="calendar icon"></i>
+          <input type="text" name="start_time" placeholder="Date">
+        </div>
+      </div>
+
+      <div class="ui calendar disabled" id="stop_time">
+        <h3>Stop Time</h3>
+        <div class="ui input left icon">
+          <i class="calendar icon"></i>
+          <input type="text" name="stop_time" placeholder="Date">
+        </div>
+      </div>
+    </div>
+
+    {% for activity in activities_types[activity_type]["options"]%}
+      <input type="radio" name="sub_type_id" value="{{activity["id"]}}">
+      <label >{{activity["name"]}}</label><br>
+    {% endfor %}
+
+    <button class="ui primary button" type="submit">
+      Save activity
+    </button>
+  </form>
+</div>
+{% endfor %}
+
+
 
 <script>
-  $(".tabular.menu .item").tab();
+  $(".tabular.menu .item").tab()
+
+  var today = new Date();
+
+  $('#start_time').calendar({
+    maxDate: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), today.getMinutes()),
+  }).on('change', function(date, text, mode){
+      if(date.target.value){
+        console.log(new Date(date.target.value).toISOString())
+        $('#stop_time').removeClass("disabled")
+      }
+      else{
+        $('#stop_time').addClass("disabled")
+      }
+
+  });
+
+  $('#stop_time').calendar({
+    maxDate: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), today.getMinutes())
+  })
+
+  $('.activity_form').submit(function( event ) {
+    console.log($( this ).serializeArray())
+    
+    event.preventDefault();
+  });
+;
 </script>
 {% endblock %}
