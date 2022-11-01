@@ -36,12 +36,14 @@ def get_course(course_id):
 
 
 @courses.route("/course/<course_id>", methods=["DELETE"])
+@check_admin
 def delete_course(course_id):
     req = requests.delete("%s/course/%s" % (courses_url, course_id), headers=header)
     return req.json(), req.status_code
 
 
 @courses.route("/course/create", methods=["POST"])
+@check_admin
 def create_course():
     if request.is_json and request.data:
         req = requests.post("%s/course/create" % courses_url, json=request.json, headers=header)

@@ -34,6 +34,9 @@ app.register_blueprint(activities)
 app.register_blueprint(evaluations)
 app.register_blueprint(presential_services)
 
+@app.before_request
+def before_request():
+    return check_permission()
 
 @app.errorhandler(requests.exceptions.ConnectionError)
 def handle_bad_request(e):
