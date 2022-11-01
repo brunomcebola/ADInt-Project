@@ -8,8 +8,12 @@
 
 {% for activity_type in activities_types %}
 <div class="ui tab" data-tab="{{activities_types[activity_type]["id"]}}">
-  <form class="ui form" id="{{'form_%s' % activities_types[activity_type]["id"]}}">
-    <input name="type_id" value="{{activities_types[activity_type]["id"]}}" type="hidden"/>
+  <div class="ui success message hidden" id="{{'success_%s' % activities_types[activity_type]["id"]}}">
+    <div class="header">Successful submition</div>
+    <p>{{activity_type}} activity registered with success</p>
+  </div>
+
+  <form class="ui form" id="{{'form_%s' % activities_types[activity_type]["id"]}}" type_id="{{activities_types[activity_type]["id"]}}">
 
     <div class="field">
       <div class="two fields">
@@ -41,12 +45,9 @@
         <br />
       {% endfor %}
     </div>
-
     <button class="ui button primary" type="submit">
       Save activity
     </button>
-
-    <div class="ui error message"></div>
   </form>
 </div>
 {% endfor %}
@@ -60,7 +61,9 @@
 
   tabs.tab({onVisible: 
     function( event ){
-      $("#form_" + event).form('reset')
+      $("#form_" + event).form('clear')
+      $("#success_" + event).removeClass("hidden")
+      $("#success_" + event).addClass("hidden")
     }
   });
 
@@ -101,11 +104,30 @@
           ]
         }
       },
-      onSuccess: function(event, fields) {
+      inline : true,
+      on: 'blur',
+      onSuccess: async function(event, fields) {
         event.preventDefault();
-        console.log("ola")
-        //console.log(new Date(date.target.value).toISOString())
+        $(this).addClass("loading")
+
+        var type_id = $(event.target).attr("type_id")
+
+        fields.start_time = new Date(fields.start_time).toISOString()
+        fields.stop_time = new Date(fields.stop_time).toISOString()
+        fields.type_id = type_id
+
+        await new Promise(resolve => {
+          setTimeout(() => {
+            resolve()
+          }, 1000);
+        }); 
+
+        $(this).removeClass("loading");
+        $("#success_" + type_id).removeClass("hidden");
+
+        $(this).form('clear')
       }
+      
     })
 
 
