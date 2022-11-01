@@ -6,7 +6,7 @@ import requests
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect
 
-header = {"ADMIN_TOKEN": "admin"}
+header = {"ADMIN_TOKEN": "admin"} # adhwiadhaldjawpdhabweo123
 
 mandatory_params = [
     "HOST",
