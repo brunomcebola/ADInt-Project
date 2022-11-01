@@ -28,21 +28,6 @@ def get_activity_type(type_id, sub_type_id):
     return req.json(), req.status_code
 
 
-@activities.route("/activity/type/<type_id>/<sub_type_id>", methods=["DELETE"])
-@check_admin
-def delete_activity_type(type_id, sub_type_id):
-    req = requests.delete("%s/activity/type/%s/%s" % (activities_url, type_id, sub_type_id), headers=header)
-    return req.json(), req.status_code
-
-
-@activities.route("/activity/type/create", methods=["POST"])
-@check_admin
-def create_activity_type():
-    # TODO: check if db exists
-    req = requests.post("%s/activity/type/create" % activities_url, json=request.json, headers=header)
-    return req.json(), req.status_code
-
-
 # Activities
 
 

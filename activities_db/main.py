@@ -10,6 +10,71 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from middlewares import *
 
+
+def format_activities_types(activities_types):
+
+    activisties_types_list = []
+
+    for activity_type, activities_sub_types in activities_types.items():
+        for activity_sub_type, activity_db in activities_sub_types.items():
+            activisties_types_list.append(
+                {
+                    "type_name": activity_type.strip().capitalize(),
+                    "sub_type_name": activity_sub_type.strip().capitalize(),
+                    "db": activity_db,
+                }
+            )
+
+    return activisties_types_list
+
+
+def store_activities_types(activities_types):
+    for new_activity_type in activities_types:
+
+        activity_type = (
+            session.query(ActivityType)
+            .filter(
+                ActivityType.type_name == new_activity_type["type_name"],
+                ActivityType.sub_type_name == new_activity_type["sub_type_name"],
+            )
+            .first()
+        )
+
+        if activity_type:
+            continue
+
+        activities_types = session.query(ActivityType.type_id, ActivityType.type_name)
+
+        new_activity_type["type_id"] = len(set(activities_types)) + 1
+
+        activity_type_exists = False
+        for type in set(activities_types):
+            if type[1] == new_activity_type["type_name"]:
+                new_activity_type["type_id"] = type[0]
+                activity_type_exists = True
+                break
+
+        new_activity_type["sub_type_id"] = 1
+
+        if activity_type_exists:
+
+            activities_sub_types = session.query(ActivityType.sub_type_id, ActivityType.sub_type_name).filter(
+                ActivityType.type_id == new_activity_type["type_id"]
+            )
+
+            new_activity_type["sub_type_id"] = len(set(activities_sub_types)) + 1
+
+        # Creating a new activity type and adding it to the database.
+        activity_type = ActivityType()
+
+        for key, value in new_activity_type.items():
+            setattr(activity_type, key, value)
+
+        session.add(activity_type)
+    
+    session.commit()
+
+
 mandatory_params = [
     "HOST",
     "PORT",
@@ -23,12 +88,12 @@ for param in mandatory_params:
         raise SystemExit("[ENV] Parameter %s is mandatory" % param)
 
 # read and validate configurations
-config_file = "activities.yaml"
+config_file = "activities_list.yaml"
 
 try:
     with open(config_file, "r") as stream:
         try:
-            configs = yaml.safe_load(stream)
+            activities_types = yaml.safe_load(stream)
 
         except:
             raise SystemExit("Erro ao ler ficheiro de configurações (%s)." % config_file)
@@ -36,19 +101,19 @@ except:
     raise SystemExit("Ficheiro de configurações (%s) não encontrado." % config_file)
 
 
+activities_types = format_activities_types(activities_types)
 
 # create DB and table
 Base = declarative_base()
 
 # Declaration of data
 class ActivityType(Base):
-    __tablename__ = "activityTypes"
+    __tablename__ = "activitiesTypes"
     type_id = Column(Integer, primary_key=True)
     type_name = Column(String)
     sub_type_id = Column(Integer, primary_key=True)
     sub_type_name = Column(String)
-    is_external = Column(Boolean, default=False)
-    external_db = Column(String, default="")
+    db = Column(String, default=None)
 
     @classmethod
     def columns(cls):
@@ -86,6 +151,7 @@ Base.metadata.create_all(engine)  # Create tables for the data models
 Session = sessionmaker(bind=engine)
 session = Session()
 
+store_activities_types(activities_types)
 
 ################################
 ########### FLASK ##############
@@ -116,91 +182,6 @@ def get_activity_db(type_id, sub_type_id):
         return jsonify(activity_type.as_dict()), 200
 
     return jsonify("Activity type not found"), 404
-
-
-@app.route("/activity/type/<type_id>/<sub_type_id>", methods=["DELETE"])
-def delete_activity_type(type_id, sub_type_id):
-    activity_type = session.query(ActivityType).get((type_id, sub_type_id))
-
-    if activity_type:
-        session.delete(activity_type)
-        session.commit()
-
-        return jsonify("Successful deletion"), 200
-
-    return jsonify("Not Found"), 404
-
-
-@app.route("/activity/type/create", methods=["POST"])
-@check_json
-def create_activity_type():
-    data = {}
-    allowed_fields = [
-        "type_name",
-        "sub_type_name",
-        "is_external",
-        "external_db",
-    ]
-    mandatory_fileds = ["type_name", "sub_type_name"]
-
-    # Checking if the fields in the request are allowed
-    for key in request.json:  # type: ignore
-        if key in allowed_fields:
-            data[key] = request.json[key]  # type: ignore
-        else:
-            return jsonify("Field not allowed (%s)" % key), 400
-
-    # Checking if the mandatory fields are in the request.
-    for field in mandatory_fileds:
-        if field not in data:
-            return jsonify("Field missing (%s)" % field), 400
-
-    # Removing the spaces before and after the string and capitalizing the first letter.
-    data["type_name"] = data["type_name"].strip().capitalize()
-    data["sub_type_name"] = data["sub_type_name"].strip().capitalize()
-
-    # Getting the type_id and type_name from the ActivityType table. Then it is checking if the
-    # type_name is already in the table. If it is, it will return the type_id. If it is not, it
-    # will return the type_id + 1.
-    activities_types = session.query(ActivityType.type_id, ActivityType.type_name)
-
-    data["type_id"] = 1
-    for type in set(activities_types):
-        if type[1] == data["type_name"]:
-            data["type_id"] = type[0]
-        else:
-            data["type_id"] = type[0] + 1
-
-    # Getting the sub_type_id and sub_type_name from the ActivityType table. Then it is checking
-    # if the sub_type_name is already in the table. If it is, it will return the sub_type_id. If
-    # it is not, it will return the sub_type_id + 1.
-    activities_sub_types = session.query(ActivityType.sub_type_id, ActivityType.sub_type_name).filter(
-        ActivityType.type_id == data["type_id"]
-    )
-
-    data["sub_type_id"] = 1
-    for sub_type in set(activities_sub_types):
-        if sub_type[1] == data["sub_type_name"]:
-            return jsonify("Activity type already exists"), 400
-        else:
-            data["sub_type_id"] = sub_type[0] + 1
-
-    # Checking if the field "is_external" is in the data and if it is true. If it is true, it is
-    # checking if the field "external_db" is in the data and if it is not empty. If it is empty,
-    # it will return an error.
-    if "is_external" in data and data["is_external"] and ("external_db" not in data or not data["external_db"]):
-        return jsonify("Field missing (external_db)"), 400
-
-    # Creating a new activity type and adding it to the database.
-    activity_type = ActivityType()
-
-    for key, value in data.items():
-        setattr(activity_type, key, value)
-
-    session.add(activity_type)
-    session.commit()
-
-    return jsonify("Created"), 201
 
 
 # activities
