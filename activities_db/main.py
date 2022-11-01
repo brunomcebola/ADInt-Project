@@ -264,9 +264,9 @@ def create_activity():
 
         activity_type = activity_type.as_dict()
 
-        if activity_type["is_external"] and "external_id" not in data:
+        if activity_type["db"] and "external_id" not in data:
             return jsonify("Bad Request"), 400
-        elif not activity_type["is_external"] and "external_id" in data:
+        elif not activity_type["db"] and "external_id" in data:
             del data["external_id"]
 
         try:

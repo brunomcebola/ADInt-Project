@@ -8,68 +8,118 @@
 
 {% for activity_type in activities_types %}
 <div class="ui tab" data-tab="{{activities_types[activity_type]["id"]}}">
-  <form class="activity_form">
+  <form class="ui form" id="{{'form_%s' % activities_types[activity_type]["id"]}}">
     <input name="type_id" value="{{activities_types[activity_type]["id"]}}" type="hidden"/>
 
-    <div class="calendar-wrap">
-      <div class="ui calendar" id="start_time">
-        <h3>Start Time</h3>
-        <div class="ui input left icon">
-          <i class="calendar icon"></i>
-          <input type="text" name="start_time" placeholder="Date">
+    <div class="field">
+      <div class="two fields">
+        <div class="field ui calendar" id="start_time">
+          <h3>Start Time <span class="required">*</span></h3>
+          <div class="ui input left icon">
+            <i class="calendar icon"></i>
+            <input type="text" name="start_time" placeholder="Start time">
+          </div>
         </div>
-      </div>
-
-      <div class="ui calendar disabled" id="stop_time">
-        <h3>Stop Time</h3>
-        <div class="ui input left icon">
-          <i class="calendar icon"></i>
-          <input type="text" name="stop_time" placeholder="Date">
+  
+        <div class="field ui calendar" id="stop_time">
+          <h3>Stop Time <span class="required">*</span></h3>
+          <div class="ui input left icon">
+            <i class="calendar icon"></i>
+            <input type="text" name="stop_time" placeholder="Stop time">
+          </div>
         </div>
       </div>
     </div>
 
-    {% for activity in activities_types[activity_type]["options"]%}
-      <input type="radio" name="sub_type_id" value="{{activity["id"]}}">
-      <label >{{activity["name"]}}</label><br>
-    {% endfor %}
+    <div class="field">
+      <h3>Activity type <span class="required">*</span></h3>
+      {% for activity in activities_types[activity_type]["options"]%}
+        <div class="ui checkbox">
+          <input type="radio" name="sub_type_id" value="{{activity["id"]}}">
+          <label >{{activity["name"]}}</label>
+        </div>
+        <br />
+      {% endfor %}
+    </div>
 
-    <button class="ui primary button" type="submit">
+    <button class="ui button primary" type="submit">
       Save activity
     </button>
+
+    <div class="ui error message"></div>
   </form>
 </div>
 {% endfor %}
 
-
-
 <script>
-  $(".tabular.menu .item").tab()
-
   var today = new Date();
+  
+  var tabs = $(".tabular.menu .item");
 
-  $('#start_time').calendar({
-    maxDate: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), today.getMinutes()),
-  }).on('change', function(date, text, mode){
-      if(date.target.value){
-        console.log(new Date(date.target.value).toISOString())
-        $('#stop_time').removeClass("disabled")
-      }
-      else{
-        $('#stop_time').addClass("disabled")
-      }
+  var active_tab = 1
 
+  tabs.tab({onVisible: 
+    function( event ){
+      $("#form_" + event).form('reset')
+    }
   });
 
-  $('#stop_time').calendar({
-    maxDate: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), today.getMinutes())
-  })
+  for (tab of tabs) {
+    tab_id = $(tab).attr("data-tab")
 
-  $('.activity_form').submit(function( event ) {
-    console.log($( this ).serializeArray())
+    var form = $("#form_" + tab_id);
+    var start_time= $("#form_" + tab_id + " #start_time" )
+    var stop_time= $("#form_" + tab_id + " #stop_time" )
+
+    form.form({
+      fields: {
+        start_time: {
+          identifier: 'start_time',
+          rules: [
+            {
+              type   : 'empty',
+              prompt : 'Please enter a start time'
+            }
+          ]
+        },
+        stop_time: {
+          identifier: 'stop_time',
+          rules: [
+            {
+              type   : 'empty',
+              prompt : 'Please enter a stop time'
+            }
+          ]
+        },
+        sub_type_id: {
+          identifier: 'sub_type_id',
+          rules: [
+            {
+              type   : 'checked',
+              prompt : 'Please select an activity type form the list'
+            }
+          ]
+        }
+      },
+      onSuccess: function(event, fields) {
+        event.preventDefault();
+        console.log("ola")
+        //console.log(new Date(date.target.value).toISOString())
+      }
+    })
+
+
+    start_time.calendar({
+      maxDate: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), today.getMinutes()),
+    }) 
+
+    stop_time.calendar({
+      maxDate: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), today.getMinutes())
+    })
+
     
-    event.preventDefault();
-  });
-;
+  }  
+
+  
 </script>
 {% endblock %}
