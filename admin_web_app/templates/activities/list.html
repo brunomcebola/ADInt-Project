@@ -45,8 +45,8 @@
   <form class="filters" action="/activities" method="post">
     <div>
       <p>Type</p>
-      <input type="checkbox" name="filter_type"/>
-      <select name="type_id">
+      <input type="checkbox" name="filter_type" id="type"/>
+      <select name="type_id" id="type_list">
         {% for type in activities_types %}
         <option value={{type["value"]}}>{{type["name"]}}</option>
         {% endfor %}
@@ -55,8 +55,8 @@
   
     <div>
       <p>Sub Type</p>
-      <input type="checkbox" name="filter_sub_type"/>
-      <select name="sub_type_id">
+      <input type="checkbox" name="filter_sub_type" id="subtype"/>
+      <select name="sub_type_id" id="subtype_list">
         {% for sub_type in activities_sub_types %}
         <option value={{sub_type["value"]}}>{{sub_type["name"]}}</option>
         {% endfor %}
@@ -65,8 +65,8 @@
   
     <div>
       <p>Course/Service</p>
-      <input type="checkbox" name="filter_external"/>
-      <select name="external_id">
+      <input type="checkbox" name="filter_external" id="other"/>
+      <select name="external_id" id="other_list">
         {% for external in externals %}
         <option value={{external["value"]}}>{{external["name"]}}</option>
         {% endfor %}
@@ -75,13 +75,13 @@
   
     <div>
       <p>Studend id</p>
-      <input type="checkbox" name="filter_student"/>
-      <input type="text" name="student_id"/>
+      <input type="checkbox" name="filter_student" id="student"/>
+      <input type="text" name="student_id" id="student_id"/>
     </div>
 
     <br>
   
-    <input type="submit" value="Filter" />
+    <input type="submit" value="Filter" id="submit"/>
   </form>
   {% endif %}
 
@@ -118,7 +118,59 @@
     </tbody>
   </table>
 
+  <script type="text/javascript">
+    const type = document.getElementById("type");
+    const type_list = document.getElementById("type_list");
+
+    const subtype = document.getElementById("subtype");
+    const subtype_list = document.getElementById("subtype_list");
+
+    const other = document.getElementById("other");
+    const other_list = document.getElementById("other_list");
+
+    const student = document.getElementById("student");
+    const student_id = document.getElementById("student_id");
+
+    const submit = document.getElementById("submit");
+  
+    function checkDisabled() {
+      submit.disabled = type.checked && (type_list.value.length === 0) ||
+      subtype.checked && (subtype_list.value.length === 0) || 
+      other.checked && (other_list.value.length === 0);
+    }
+    
+    // Type
+    type.addEventListener('change', function(){
+      checkDisabled()
+    })
+  
+    type_list.addEventListener('change', function(){
+      checkDisabled()
+    })
+
+    // SubType  
+    subtype.addEventListener('change', function(){
+      checkDisabled()
+    })
+  
+    subtype_list.addEventListener('change', function(){
+      checkDisabled()
+    })
+
+    // Course/Service  
+    other.addEventListener('change', function(){
+      checkDisabled()
+    })
+  
+    other_list.addEventListener('change', function(){
+      checkDisabled()
+    })
+
+
+
+  </script>
   
 </div>
+
 
 {% endblock %}
