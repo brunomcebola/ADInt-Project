@@ -1,5 +1,5 @@
 body {
-  margin: 20px
+  margin: 20px;
 }
 
 h1 {
@@ -15,24 +15,48 @@ h1 {
   cursor: pointer;
 }
 
-.ui.tabular.menu .item:hover{
+.ui.tabular.menu .item:hover {
   background-color: #f7f7f7;
+  border-top-left-radius: 0.28571429rem;
+  border-top-right-radius: 0.28571429rem;
 }
 
-.ui.tabular.menu .item.active{
+.ui.tabular.menu .item.active {
   background-color: #f1f1f1;
 }
 
 .ui.tab {
   padding: 20px;
   background-color: #f1f1f1;
-  border-left: 1px solid #D4D4D5;
-  border-right: 1px solid #D4D4D5;
-  border-bottom: 1px solid #D4D4D5;
+  border-left: 1px solid #d4d4d5;
+  border-right: 1px solid #d4d4d5;
+  border-bottom: 1px solid #d4d4d5;
   border-bottom-left-radius: 0.28571429rem;
   border-bottom-right-radius: 0.28571429rem;
 }
 
 span.required {
-  color: red
+  color: red;
+}
+
+@keyframes increase {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.message .line-fade {
+  height: 4px;
+  animation: increase 4s linear;
+}
+
+.message.success .line-fade {
+  background-color: #a3c293;
+}
+
+.message.negative .line-fade {
+  background-color: #db2828;
 }

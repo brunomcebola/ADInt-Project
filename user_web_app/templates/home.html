@@ -1,158 +1,110 @@
 {% extends 'layout.html' %} {% block content %}
-<h1>Welcome to IST - Big Brother</h1>
+<div style="text-align: right">
+  <a href="/logout">
+    <button class="ui button primary">Log out</button>
+  </a>
+</div>
+
 <div class="ui tabular menu">
-  {% for activity_type in activities_types %}
-  <div class="item" data-tab="{{activities_types[activity_type]["id"]}}"><h2>{{activity_type}}</h2></div>
-  {% endfor %}
+  <div class="item" data-tab="1"><h2></h2></div>
+  <div class="item" data-tab="2"><h2></h2></div>
+  <div class="item" data-tab="3"><h2></h2></div>
 </div>
 
-{% for activity_type in activities_types %}
-<div class="ui tab" data-tab="{{activities_types[activity_type]["id"]}}">
-  <div class="ui success message hidden" id="{{'success_%s' % activities_types[activity_type]["id"]}}">
-    <div class="header">Successful submition</div>
-    <p>{{activity_type}} activity registered with success</p>
-  </div>
-
-  <form class="ui form" id="{{'form_%s' % activities_types[activity_type]["id"]}}" type_id="{{activities_types[activity_type]["id"]}}">
-
-    <div class="field">
-      <div class="two fields">
-        <div class="field ui calendar" id="start_time">
-          <h3>Start Time <span class="required">*</span></h3>
-          <div class="ui input left icon">
-            <i class="calendar icon"></i>
-            <input type="text" name="start_time" placeholder="Start time">
-          </div>
-        </div>
-  
-        <div class="field ui calendar" id="stop_time">
-          <h3>Stop Time <span class="required">*</span></h3>
-          <div class="ui input left icon">
-            <i class="calendar icon"></i>
-            <input type="text" name="stop_time" placeholder="Stop time">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="field">
-      <h3>Activity type <span class="required">*</span></h3>
-      {% for activity in activities_types[activity_type]["options"]%}
-      <div class="ui checkbox">
-        <input type="radio" name="sub_type_id" value="{{activity["id"]}}">
-        <label style="margin-right: 20px; padding-left: 20px">{{activity["name"]}}</label>
-      </div>
-      {% endfor %}
-    </div>
-
-    <div class="field">
-      <h3>Description</h3>
-      <textarea name="description"></textarea>
-    </div>
-
-    <button class="ui button primary" type="submit">
-      Save activity
-    </button>
-  </form>
-</div>
-{% endfor %}
+<div class="ui tab" data-tab="1"></div>
+<div class="ui tab" data-tab="2"></div>
+<div class="ui tab" data-tab="3"></div>
 
 <script>
+  var types = ["Personal", "Academic", "Administrative"];
+
   var today = new Date();
-  
+
   var tabs = $(".tabular.menu .item");
 
-  var active_tab = 1
+  tabs.tab();
 
-  tabs.tab({onVisible: 
-    function( event ){
-      $("#form_" + event).form('clear')
-      $("#success_" + event).removeClass("hidden")
-      $("#success_" + event).addClass("hidden")
-    }
-  });
+  for (let tab_id = 1; tab_id < tabs.length + 1; tab_id++) {
+    tabs[tab_id - 1].children[0].innerHTML = types[tab_id - 1];
 
-  for (tab of tabs) {
-    tab_id = $(tab).attr("data-tab")
+    let tabContent = $(`.ui.tab[data-tab=${tab_id}]`)[0];
 
-    var form = $("#form_" + tab_id);
-    var start_time= $("#form_" + tab_id + " #start_time" )
-    var stop_time= $("#form_" + tab_id + " #stop_time" )
+    tabContent.innerHTML += createSuccessMessage(tab_id, types[tab_id - 1]);
+    tabContent.innerHTML += createErrorMessage(tab_id, types[tab_id - 1]);
+    tabContent.innerHTML += createForm(tab_id, [{ id: 1, name: "ola" }]);
+
+    let form = $("#form_" + tab_id);
+    let start_time = $("#form_" + tab_id + " #start_time");
+    let stop_time = $("#form_" + tab_id + " #stop_time");
 
     form.form({
       fields: {
         start_time: {
-          identifier: 'start_time',
+          identifier: "start_time",
           rules: [
             {
-              type   : 'empty',
-              prompt : 'Please enter a start time'
-            }
-          ]
+              type: "empty",
+              prompt: "Please enter a start time",
+            },
+          ],
         },
         stop_time: {
-          identifier: 'stop_time',
+          identifier: "stop_time",
           rules: [
             {
-              type   : 'empty',
-              prompt : 'Please enter a stop time'
-            }
-          ]
+              type: "empty",
+              prompt: "Please enter a stop time",
+            },
+          ],
         },
         sub_type_id: {
-          identifier: 'sub_type_id',
+          identifier: "sub_type_id",
           rules: [
             {
-              type   : 'checked',
-              prompt : 'Please select an activity type form the list'
-            }
-          ]
-        }
+              type: "checked",
+              prompt: "Please select an activity type form the list",
+            },
+          ],
+        },
       },
-      inline : true,
-      on: 'blur',
-      onSuccess: async function(event, fields) {
+      inline: true,
+      on: "blur",
+      onSuccess: async function (event, fields) {
         event.preventDefault();
-        $(this).addClass("loading")
+        $(this).addClass("loading");
 
-        var type_id = $(event.target).attr("type_id")
+        var type_id = $(event.target).attr("type_id");
 
-        fields.start_time = new Date(fields.start_time).toISOString()
-        fields.stop_time = new Date(fields.stop_time).toISOString()
-        fields.type_id = type_id
+        fields.start_time = new Date(fields.start_time).toISOString();
+        fields.stop_time = new Date(fields.stop_time).toISOString();
+        fields.type_id = type_id;
 
-        console.log(fields)
-
-        await new Promise(resolve => {
+        await new Promise((resolve) => {
           setTimeout(() => {
-            resolve()
+            resolve();
           }, 1000);
-        }); 
+        });
 
         $(this).removeClass("loading");
         $("#success_" + type_id).removeClass("hidden");
+        $("#error_" + type_id).removeClass("hidden");
 
         setTimeout(() => {
           $("#success_" + type_id).addClass("hidden");
-        }, 5000);
+          $("#error_" + type_id).addClass("hidden");
+        }, 4000);
 
-        $(this).form('clear')
-      }
-      
-    })
-
+        $(this).form("clear");
+      },
+    });
 
     start_time.calendar({
       maxDate: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), today.getMinutes()),
-    }) 
+    });
 
     stop_time.calendar({
-      maxDate: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), today.getMinutes())
-    })
-
-    
-  }  
-
-  
+      maxDate: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), today.getMinutes()),
+    });
+  }
 </script>
 {% endblock %}

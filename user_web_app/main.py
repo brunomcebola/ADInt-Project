@@ -8,7 +8,7 @@ from oauthlib.oauth2 import WebApplicationClient
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
+from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user, current_user
 
 mandatory_params = [
     "HOST",
@@ -62,7 +62,7 @@ login_manager.init_app(app)
 
 @login_manager.unauthorized_handler
 def unauthorized_handler():
-    return redirect("/login")
+    return redirect("/login-page")
 
 
 # Flask-Login helper to retrieve a user from our db
@@ -90,6 +90,16 @@ def login():
         scope=["openid", "email", "profile"],
     )
     return redirect(request_uri, code=302)
+
+
+@app.route("/logout")
+@login_required
+def logout():
+    session.delete(current_user)
+    session.commit()
+    logout_user()
+
+    return redirect("/login-page")
 
 
 @app.route("/login/callback")
@@ -140,6 +150,7 @@ def callback():
         login_user(user)
     return redirect("/")
 
+
 @app.route("/")
 @login_required
 def home():
@@ -178,6 +189,11 @@ def home():
     activities_types = aux_dict
 
     return render_template("home.html", activities_types=activities_types)
+
+
+@app.route("/login-page")
+def login_page():
+    return render_template("login.html")
 
 
 if __name__ == "__main__":
