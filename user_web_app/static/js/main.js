@@ -89,7 +89,7 @@ function generateTable(items, page, perPage) {
         </tr>
       </thead>
       <tbody>
-    `;
+  `;
 
   for (let item of items.slice(page * perPage, (page + 1) * perPage)) {
     let duration = item.stop_time - item.start_time;
@@ -103,7 +103,7 @@ function generateTable(items, page, perPage) {
           <td class="single line">${duration}</td>
           <td>${item.description}</td>
         </tr>
-      `;
+    `;
   }
 
   table += `
@@ -115,7 +115,7 @@ function generateTable(items, page, perPage) {
               <a class="icon item">
                 <i class="left chevron icon"></i>
               </a>
-              `;
+  `;
 
   for (let i = 1; i <= Math.ceil(items.length / perPage); i++) {
     table += `

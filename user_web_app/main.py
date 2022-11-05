@@ -126,6 +126,8 @@ def callback():
     for course in course_info_response.json().get("enrolments"):
         user_courses.append(course["name"])
 
+    # TODO: store in CoursesDB
+
     userinfo_endpoint = "https://fenix.tecnico.ulisboa.pt/api/fenix/v1/person"
     uri, headers, body = client.add_token(userinfo_endpoint)
     userinfo_response = requests.get(uri, headers=headers, data=body)

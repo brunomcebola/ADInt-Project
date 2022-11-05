@@ -33,7 +33,7 @@
 
     tabContent.innerHTML += createSuccessMessage(tab_id, types[tab_id - 1]);
     tabContent.innerHTML += createErrorMessage(tab_id, types[tab_id - 1]);
-    tabContent.innerHTML += createForm(tab_id, []);
+    tabContent.innerHTML += createForm(tab_id, [{id}]);
 
     let form = $("#form_" + tab_id);
     let start_time = $("#form_" + tab_id + " #start_time");
