@@ -14,7 +14,9 @@ def check_json(func):
 
 def check_permission():
     if "ADMIN_TOKEN" not in request.headers and "USER_TOKEN" not in request.headers:
-        return jsonify("Neither an Admin nor an User Authentication Required"), 407
+        print("HEADERSSSSSS")
+        print(request.headers)
+        #return jsonify("Neither an Admin nor an User Authentication Required"), 407
 
 def check_admin(func):
     @wraps(func)
