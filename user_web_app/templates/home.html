@@ -15,6 +15,8 @@
 <div class="ui tab" data-tab="2"></div>
 <div class="ui tab" data-tab="3"></div>
 
+<div id="table"></div>
+
 <script>
   var types = ["Personal", "Academic", "Administrative"];
 
@@ -24,14 +26,14 @@
 
   tabs.tab();
 
-  for (let tab_id = 1; tab_id < tabs.length + 1; tab_id++) {
+  for (let tab_id = 1; tab_id <= tabs.length; tab_id++) {
     tabs[tab_id - 1].children[0].innerHTML = types[tab_id - 1];
 
     let tabContent = $(`.ui.tab[data-tab=${tab_id}]`)[0];
 
     tabContent.innerHTML += createSuccessMessage(tab_id, types[tab_id - 1]);
     tabContent.innerHTML += createErrorMessage(tab_id, types[tab_id - 1]);
-    tabContent.innerHTML += createForm(tab_id, [{ id: 1, name: "ola" }]);
+    tabContent.innerHTML += createForm(tab_id, []);
 
     let form = $("#form_" + tab_id);
     let start_time = $("#form_" + tab_id + " #start_time");
@@ -106,5 +108,9 @@
       maxDate: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), today.getMinutes()),
     });
   }
+
+  var table = $("#table")[0];
+
+  table.innerHTML = generateTable([], 0, 5);
 </script>
 {% endblock %}

@@ -29,12 +29,8 @@ for param in mandatory_params:
 app = Flask(__name__)
 app.secret_key = os.getenv("APP_SECRET")
 
-
 client = WebApplicationClient(os.getenv("FENIX_CLIENT_ID"))
 
-# for server
-
-# for app
 Base = declarative_base()
 
 
@@ -48,7 +44,7 @@ class User(Base, UserMixin):
 
 DATABASE_FILE = "UsersDB.sqlite"
 
-engine = create_engine("sqlite:///%s" % (DATABASE_FILE), echo=False)
+engine = create_engine("sqlite:///%s?check_same_thread=False" % (DATABASE_FILE), echo=False)
 
 Base.metadata.create_all(engine)  # Create tables for the data models
 

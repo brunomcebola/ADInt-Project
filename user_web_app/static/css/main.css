@@ -60,3 +60,7 @@ span.required {
 .message.negative .line-fade {
   background-color: #db2828;
 }
+
+#table {
+  margin-top: 20px;
+}
