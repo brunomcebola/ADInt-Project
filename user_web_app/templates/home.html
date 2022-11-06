@@ -35,7 +35,7 @@
 
   $.ajaxSetup({
     headers: {
-      Authorization: "Bearer " + "admin",
+      Authorization: "admin",
       "Access-Control-Allow-Origin": "*",
     },
   });
@@ -159,11 +159,6 @@
 
             setTimeout(() => $("#error_" + tab_id).addClass("hidden"), 4000);
 
-            $.toast({
-              displayTime: 5000,
-              message: `You will see me for 5 seconds.`,
-            });
-
             return;
           }
         }
@@ -205,7 +200,42 @@
   }
 
   function setChart(activities) {
-    const labels = ["a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a"];
+    const labels = [
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+      "a",
+    ];
 
     const data = {
       labels: labels,
@@ -214,7 +244,7 @@
           label: "Personal",
           backgroundColor: "#6F00FF",
           borderColor: "#6F00FF",
-          data: [1,2,3,4,5,6,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+          data: [1, 2, 3, 4, 5, 6, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
         },
         {
           label: "Academic",
@@ -268,6 +298,9 @@
     tabs[tab_id - 1].children[0].innerHTML = types[tab_id - 1];
 
     let tabContent = $(`.ui.tab[data-tab=${tab_id}]`)[0];
+
+    $(tabContent).append(createSuccessMessage(tab_id, types[tab_id - 1]));
+    $(tabContent).append(createErrorMessage(tab_id, types[tab_id - 1]));
 
     setActForm(tabContent, tab_id, testArray);
   }
