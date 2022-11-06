@@ -12,15 +12,20 @@ from middlewares import *
 
 
 def format_activities_types(activities_types):
+    types_names = ["Personal", "Academic", "Administrative"]
 
     activisties_types_list = []
 
-    for activity_type, activities_sub_types in activities_types.items():
-        for activity_sub_type, activity_db in activities_sub_types.items():
+    for type_name, activities in activities_types.items():
+
+        if type_name not in types_names:
+            continue
+
+        for activity_name, activity_db in activities.items():
             activisties_types_list.append(
                 {
-                    "type_name": activity_type.strip().capitalize(),
-                    "sub_type_name": activity_sub_type.strip().capitalize(),
+                    "type_name": type_name.strip().capitalize(),
+                    "activity_name": activity_name.strip().capitalize(),
                     "db": activity_db,
                 }
             )
@@ -35,34 +40,13 @@ def store_activities_types(activities_types):
             session.query(ActivityType)
             .filter(
                 ActivityType.type_name == new_activity_type["type_name"],
-                ActivityType.sub_type_name == new_activity_type["sub_type_name"],
+                ActivityType.activity_name == new_activity_type["activity_name"],
             )
             .first()
         )
 
         if activity_type:
             continue
-
-        activities_types = session.query(ActivityType.type_id, ActivityType.type_name)
-
-        new_activity_type["type_id"] = len(set(activities_types)) + 1
-
-        activity_type_exists = False
-        for type in set(activities_types):
-            if type[1] == new_activity_type["type_name"]:
-                new_activity_type["type_id"] = type[0]
-                activity_type_exists = True
-                break
-
-        new_activity_type["sub_type_id"] = 1
-
-        if activity_type_exists:
-
-            activities_sub_types = session.query(ActivityType.sub_type_id, ActivityType.sub_type_name).filter(
-                ActivityType.type_id == new_activity_type["type_id"]
-            )
-
-            new_activity_type["sub_type_id"] = len(set(activities_sub_types)) + 1
 
         # Creating a new activity type and adding it to the database.
         activity_type = ActivityType()
@@ -109,10 +93,9 @@ Base = declarative_base()
 # Declaration of data
 class ActivityType(Base):
     __tablename__ = "activitiesTypes"
-    type_id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
     type_name = Column(String)
-    sub_type_id = Column(Integer, primary_key=True)
-    sub_type_name = Column(String)
+    activity_name = Column(String)
     db = Column(String, default=None)
 
     @classmethod
@@ -126,8 +109,7 @@ class ActivityType(Base):
 class Activity(Base):
     __tablename__ = "activities"
     id = Column(Integer, primary_key=True)
-    type_id = Column(Integer)
-    sub_type_id = Column(Integer)
+    activity_id = Column(Integer)
     student_id = Column(String)
     start_time = Column(DateTime)
     stop_time = Column(DateTime)
@@ -174,9 +156,9 @@ def get_activities_types():
     return jsonify([activity_type.as_dict() for activity_type in activities_types]), 200
 
 
-@app.route("/activity/type/<type_id>/<sub_type_id>")
-def get_activity_db(type_id, sub_type_id):
-    activity_type = session.query(ActivityType).get((type_id, sub_type_id))
+@app.route("/activity/type/<activity_id>/")
+def get_activity_type(activity_id):
+    activity_type = session.query(ActivityType).get(activity_id)
 
     if activity_type:
         return jsonify(activity_type.as_dict()), 200
