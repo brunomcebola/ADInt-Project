@@ -1,7 +1,9 @@
 import os
 import requests
+
 from flask import Flask, jsonify
 from dotenv import load_dotenv
+from flask_cors import CORS
 
 from middlewares import *
 
@@ -29,14 +31,18 @@ for param in mandatory_params:
 
 app = Flask(__name__)
 
+CORS(app)
+
 app.register_blueprint(courses)
 app.register_blueprint(activities)
 app.register_blueprint(evaluations)
 app.register_blueprint(presential_services)
 
+
 @app.before_request
 def before_request():
     return check_permission()
+
 
 @app.errorhandler(requests.exceptions.ConnectionError)
 def handle_bad_request(e):

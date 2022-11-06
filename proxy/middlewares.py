@@ -14,6 +14,10 @@ def check_json(func):
 
 
 def check_permission():
+    if request.method == "OPTIONS":
+        return
+
+    
     if "Authorization" not in request.headers:
         return jsonify("Authorization token required"), 407
 

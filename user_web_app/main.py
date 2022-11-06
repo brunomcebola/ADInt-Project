@@ -53,7 +53,7 @@ Base = declarative_base()
 class User(Base, UserMixin):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True)
-    username = Column(String)
+    username = Column(String, unique=True)
     name = Column(String)
     courses = Column(String)
 

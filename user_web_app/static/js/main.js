@@ -107,7 +107,7 @@ function generateTable(items, page, perPage) {
           <th class="single line">Type</th>
           <th class="single line">Start Time</th>
           <th class="single line">Finish Time</th>
-          <th class="single line">Duration</th>
+          <th class="single line">Duration (hours)</th>
           <th class="single line">Description</th>
         </tr>
       </thead>
@@ -119,11 +119,11 @@ function generateTable(items, page, perPage) {
 
     table += `
         <tr>
+          <td class="single line">${item.activity_name}</td>
           <td class="single line">${item.type_name}</td>
-          <td class="single line">${item.sub_type_name}</td>
           <td class="single line">${item.start_time}</td>
           <td class="single line">${item.stop_time}</td>
-          <td class="single line">${duration}</td>
+          <td class="single line">${item.duration}</td>
           <td>${item.description}</td>
         </tr>
     `;

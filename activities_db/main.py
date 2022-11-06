@@ -172,8 +172,21 @@ def get_activity_type(activity_id):
 @app.route("/activities")
 def get_activities():
     activities = session.query(Activity)
+    activities = [activity.as_dict() for activity in activities]
 
-    return jsonify([activity.as_dict() for activity in activities]), 200
+    activities_types = session.query(ActivityType)
+    activities_types = [activity_type.as_dict() for activity_type in activities_types]
+
+    print(activities_types)
+
+    for activity in activities:
+        for activity_type in activities_types:
+            if activity["activity_id"] == activity_type["id"]:
+                activity["activity_name"] = activity_type["activity_name"]
+                activity["type_name"] = activity_type["type_name"]
+                break
+
+    return jsonify(activities), 200
 
 
 @app.route("/activities/filter")
@@ -189,7 +202,21 @@ def get_filtered_activities():
     for attr, value in filters.items():
         activities = activities.filter(getattr(Activity, attr).like("%%%s%%" % value))
 
-    return jsonify([activity.as_dict() for activity in activities]), 200
+    activities = [activity.as_dict() for activity in activities]
+
+    activities_types = session.query(ActivityType)
+    activities_types = [activity_type.as_dict() for activity_type in activities_types]
+
+    print(activities_types)
+
+    for activity in activities:
+        for activity_type in activities_types:
+            if activity["activity_id"] == activity_type["id"]:
+                activity["activity_name"] = activity_type["activity_name"]
+                activity["type_name"] = activity_type["type_name"]
+                break
+
+    return jsonify(activities), 200
 
 
 @app.route("/activity/<activity_id>")

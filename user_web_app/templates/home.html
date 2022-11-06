@@ -35,7 +35,7 @@
 
   $.ajaxSetup({
     headers: {
-      Authorization: "admin",
+      Authorization: "user",
       "Access-Control-Allow-Origin": "*",
     },
   });
@@ -199,75 +199,159 @@
     });
   }
 
-  function setChart(activities) {
-    const labels = [
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
-      "a",
+  async function setTableAndChart() {
+    let activities = [];
+    await $.ajax({
+      url: `http://127.0.0.1:5000/activities/filter?student_id=${student_id}`,
+      type: "GET",
+      dataType: "json",
+      cors: true,
+      secure: true,
+      success: function (data) {
+        for (d of data) {
+          d.duration = (Math.abs(Date.parse(d.stop_time) - Date.parse(d.start_time)) / 36e5).toFixed(2);
+        }
+
+        activities = data;
+      },
+    });
+
+    console.log(activities);
+
+    let days = [];
+    let datasets = [
+      {
+        label: "Personal",
+        backgroundColor: "#6F00FF",
+        borderColor: "#6F00FF",
+      },
+      {
+        label: "Academic",
+        backgroundColor: "#00ABFF",
+        borderColor: "#00ABFF",
+      },
+      {
+        label: "Administrative",
+        backgroundColor: "#FF8900",
+        borderColor: "#FF8900",
+      },
     ];
 
+    let date = new Date();
+    date.setDate(today.getDate() - 7);
+    let endDate = today;
+
+    while (date <= endDate) {
+      days.push(new Date(date));
+      date.setDate(date.getDate() + 1);
+    }
+
+    for (dataset of datasets) {
+      dataset.data = new Array(days.length).fill(0);
+    }
+
+    for (activity of activities) {
+      for (let i = 0; i < days.length; i++) {
+        if (
+          new Date(days[i].toDateString()) >= new Date(new Date(activity.start_time).toDateString()) &&
+          new Date(days[i].toDateString()) <= new Date(new Date(activity.stop_time).toDateString())
+        ) {
+          time = 0;
+          if (
+            new Date(days[i].toDateString()) - new Date(new Date(activity.start_time).toDateString()) == 0 &&
+            new Date(days[i].toDateString()) - new Date(new Date(activity.stop_time).toDateString()) == 0
+          ) {
+            time = (Math.abs(Date.parse(activity.stop_time) - Date.parse(activity.start_time)) / 36e5).toFixed(2);
+          } else if (new Date(days[i].toDateString()) - new Date(new Date(activity.start_time).toDateString()) == 0) {
+            ref = new Date(days[i]);
+            ref.setHours(24, 0, 0, 0);
+
+            time = (Math.abs(Date.parse(ref) - Date.parse(activity.start_time)) / 36e5).toFixed(2);
+          } else if (new Date(days[i].toDateString()) - new Date(new Date(activity.stop_time).toDateString()) == 0) {
+            ref = new Date(days[i]);
+            ref.setHours(0, 0, 0, 0);
+
+            time = (Math.abs(Date.parse(activity.stop_time) - Date.parse(ref)) / 36e5).toFixed(2);
+          } else {
+            time = 24;
+          }
+
+          for(dataset of datasets) {
+            if(dataset.label == activity.type_name) {
+              dataset.data[i] += time
+            }
+          }
+
+          
+        }
+      }
+    }
+
+    for (let i = 0; i < days.length; i++) {
+      days[i] = days[i].getDate() + "/" + days[i].getMonth() + "/" + days[i].getFullYear();
+    }
+
+    /*for (activity of activities) {
+      let days = 0;
+
+      let date = new Date(activity.start_time);
+      let stopDate = new Date(activity.stop_time);
+
+      console.log(activity.duration);
+
+      while (date <= stopDate) {
+        days += 1;
+
+        date.setDate(date.getDate() + 1);
+      }
+
+      console.log(days);
+
+      if (days.length > 1) {
+        for (i = 0; i < days.length; i++) {
+          if (i == 0) {
+            ref = new Date(days[i]);
+            ref.setHours(24, 0, 0, 0);
+
+            days[i] = (Math.abs(Date.parse(ref) - Date.parse(days[i])) / 36e5).toFixed(2);
+          } else if (i == days.length - 1) {
+            ref = new Date(days[i]);
+            ref.setHours(0, 0, 0, 0);
+
+            days[i] = (Math.abs(Date.parse(days[i]) - Date.parse(ref)) / 36e5).toFixed(2);
+          } else {
+            days[i] = 24;
+          }
+        }
+      } else {
+        days[0] = 0;
+      }
+
+      console.log(days);
+    }*/
+
     const data = {
-      labels: labels,
-      datasets: [
-        {
-          label: "Personal",
-          backgroundColor: "#6F00FF",
-          borderColor: "#6F00FF",
-          data: [1, 2, 3, 4, 5, 6, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-        },
-        {
-          label: "Academic",
-          backgroundColor: "#00ABFF",
-          borderColor: "#00ABFF",
-          data: [1, 11, 6, 3, 21, 31, 46],
-        },
-        {
-          label: "Administrative",
-          backgroundColor: "#FF8900",
-          borderColor: "#FF8900",
-          data: [2, 12, 7, 4, 22, 32, 47],
-        },
-      ],
+      labels: days,
+      datasets: datasets,
     };
 
     const config = {
       type: "line",
       data: data,
-      options: {},
+      options: {
+        scales: {
+          y: {
+            min: 0,
+          },
+        },
+      },
     };
 
     const myChart = new Chart($("#chart canvas"), config);
+
+    let table = $("#table")[0];
+
+    table.innerHTML = generateTable(activities, 0, 5);
   }
 
   let tabs = $(".tabular.menu .item");
@@ -305,10 +389,6 @@
     setActForm(tabContent, tab_id, testArray);
   }
 
-  setChart();
-
-  var table = $("#table")[0];
-
-  table.innerHTML = generateTable([], 0, 5);
+  setTableAndChart();
 </script>
 {% endblock %}
