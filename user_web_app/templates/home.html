@@ -278,12 +278,14 @@
 
           for (dataset of datasets) {
             if (dataset.label == activity.type_name) {
-              dataset.data[i] += time;
+              dataset.data[i] += Number(time);
             }
           }
         }
       }
     }
+
+    console.log(datasets);
 
     for (let i = 0; i < days.length; i++) {
       days[i] = days[i].getDate() + "/" + days[i].getMonth() + "/" + days[i].getFullYear();
