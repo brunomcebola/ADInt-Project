@@ -32,8 +32,6 @@
 
   student_courses = JSON.parse(student_courses.replace(/&#34;/g, '"'));
 
-  let today = new Date();
-
   function setEvalForm(tabContent, tab_id, activitiesTypes, external_id) {
     $(tabContent.children[2]).remove();
     $(tabContent).append(createEvaluationForm());
@@ -49,10 +47,11 @@
         evalFields.student_id = student_id;
 
         $.ajax({
-          url: `${base_url}/test`,
+          url: `${base_url}/evaluation/create`,
           type: "POST",
-          data: evalFields,
-          dataType: "json",
+          data: JSON.stringify(evalFields),
+          contentType: "application/json",
+          dataType: "json", // type of response data
           cors: true,
           secure: true,
           beforeSend: function () {
@@ -63,6 +62,11 @@
             $("#evaluation_form .rating").rating("set rating", 0);
             $(tabContent.children[2]).remove();
             setActForm(tabContent, tab_id, activitiesTypes);
+          },
+          error: function () {
+            $("#error_" + tab_id).removeClass("hidden");
+
+            setTimeout(() => $("#error_" + tab_id).addClass("hidden"), 4000);
           },
           complete: function () {
             form.removeClass("loading");
@@ -99,6 +103,8 @@
         }
       }
     });
+
+    let today = new Date();
 
     start_time.calendar({
       maxDate: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), today.getMinutes()),
@@ -188,7 +194,7 @@
 
             setTimeout(() => $("#success_" + tab_id).addClass("hidden"), 4000);
 
-            setTableAndChart(activities_types);
+            setTableAndChart(activitiesTypes);
 
             if (tab_id == 3 && actFields.external_id) {
               setEvalForm(tabContent, tab_id, activitiesTypes, actFields.external_id);
@@ -259,8 +265,8 @@
     ];
 
     let date = new Date();
-    date.setDate(today.getDate() - 7);
-    let endDate = today;
+    date.setDate(date.getDate() - 6);
+    let endDate = new Date();
 
     while (date <= endDate) {
       days.push(new Date(date));

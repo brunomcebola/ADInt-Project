@@ -234,7 +234,7 @@ def apiActivityCreate():
     req = requests.post("%s/activity/create" % proxy_url, json=request.json, headers=header)
 
     if req.status_code != 201:
-        return jsonify("Error "), req.status_code
+        return jsonify("Error"), req.status_code
 
     return jsonify("Created"), 201
 
@@ -244,8 +244,8 @@ def apiActivityCreate():
 def apiActivityEvaluation():
     req = requests.post("%s/evaluation/create" % proxy_url, json=request.json, headers=header)
 
-    if req.status_code != 200:
-        return req.json(), req.status_code
+    if req.status_code != 201:
+        return jsonify("Error"), req.status_code
 
     return jsonify("Created"), 201
 
