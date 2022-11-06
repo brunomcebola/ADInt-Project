@@ -49,10 +49,6 @@ span.required {
   }
 }
 
-.message {
-  width: 33.33%;
-}
-
 .message .line-fade {
   height: 4px;
   animation: increase 4s linear;
