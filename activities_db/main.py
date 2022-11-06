@@ -113,7 +113,7 @@ class Activity(Base):
     student_id = Column(String)
     start_time = Column(DateTime)
     stop_time = Column(DateTime)
-    external_id = Column(Integer, default=0)
+    external_id = Column(Integer, default=None)
     description = Column(String, default="")
 
     @classmethod
@@ -223,8 +223,7 @@ def create_activity():
 
     allowed_fields.remove("id")
     mandatory_fileds = [
-        "type_id",
-        "sub_type_id",
+        "activity_id",
         "student_id",
         "start_time",
         "stop_time",
@@ -240,10 +239,9 @@ def create_activity():
         if field not in data:
             return jsonify("Bad Request"), 400
 
-    activity_type = session.query(ActivityType).get((data["type_id"], data["sub_type_id"]))
+    activity_type = session.query(ActivityType).get(data["activity_id"])
 
     if activity_type:
-
         activity_type = activity_type.as_dict()
 
         if activity_type["db"] and "external_id" not in data:
