@@ -25,6 +25,11 @@ mandatory_params = [
 
 load_dotenv()
 
+header = {"Token": str(os.getenv("TOKEN"))}
+
+courses_url = os.getenv("COURSES_URL")
+presential_services_url = os.getenv("PRESENTIAL_SERVICES_URL")
+
 for param in mandatory_params:
     if not os.getenv(param):
         raise SystemExit("[ENV] Parameter %s is mandatory" % param)
@@ -47,6 +52,14 @@ def before_request():
 @app.errorhandler(requests.exceptions.ConnectionError)
 def handle_bad_request(e):
     return jsonify("Bad Gateway"), 502
+
+@app.route("/db/<db_name>", methods=["GET"])
+def get_course(db_name):
+    if "Course" in db_name:
+        req = requests.get("%s/courses" % courses_url, headers=header)
+    if "PresentialService" in db_name:
+        req = requests.get("%s/services" % presential_services_url, headers=header)
+    return req.json(), req.status_code
 
 
 if __name__ == "__main__":
