@@ -54,8 +54,8 @@ function createActivityForm(id, activitiesTypes) {
     form += `
           <div style="display: inline-block">
             <div class="ui radio checkbox">
-              <input type="radio" name="sub_type_id" value=${activityType.id}>
-              <label style="margin-right: 20px; padding-left: 20px">${activityType.name}</label>
+              <input type="radio" name="activity_id" value=${activityType.id}>
+              <label style="margin-right: 20px; padding-left: 20px">${activityType.activity_name}</label>
             </div>
           </div>
     `;
@@ -85,17 +85,23 @@ function createActivityForm(id, activitiesTypes) {
 }
 
 function createOptions(options) {
-  return `
+  let dropdown = `
     <div class="ui selection dropdown" style="margin-top: 20px">
       <input name="external_id" type="hidden">
       <div class="default text">Select a value</div>
       <i class="dropdown icon"></i>
-      <div class="menu">
-          <div class="item" data-value=1>Value</div>
-          <div class="item" data-value=2>Another Value</div>
+      <div class="menu">`;
+
+  for (option of options) {
+    dropdown += `<div class="item" data-value=${option.id}>${option.name}</div>`;
+  }
+
+  dropdown += `
       </div>
     </div>
   `;
+
+  return dropdown;
 }
 
 function generateTable(items, page, perPage) {

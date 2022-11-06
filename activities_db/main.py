@@ -177,8 +177,6 @@ def get_activities():
     activities_types = session.query(ActivityType)
     activities_types = [activity_type.as_dict() for activity_type in activities_types]
 
-    print(activities_types)
-
     for activity in activities:
         for activity_type in activities_types:
             if activity["activity_id"] == activity_type["id"]:
@@ -206,8 +204,6 @@ def get_filtered_activities():
 
     activities_types = session.query(ActivityType)
     activities_types = [activity_type.as_dict() for activity_type in activities_types]
-
-    print(activities_types)
 
     for activity in activities:
         for activity_type in activities_types:
@@ -281,6 +277,7 @@ def create_activity():
             data["stop_time"] = datetime.strptime(data["stop_time"], "%Y-%m-%dT%H:%M:%SZ")
         except:
             return jsonify("Bad Request"), 400
+
 
         activity = Activity()
 

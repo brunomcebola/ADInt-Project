@@ -1,6 +1,7 @@
 import os
 import requests
 import json
+import ast
 
 from flask import Flask, render_template, request, redirect, jsonify
 from flask_cors import CORS
@@ -13,7 +14,7 @@ from flask_login import LoginManager, UserMixin, login_required, login_user, log
 
 from middlewares import *
 
-header = {"USER_TOKEN": "user"}
+header = {"Authorization": "user", "Access-Control-Allow-Origin": "*"}
 
 mandatory_params = [
     "HOST",
@@ -39,17 +40,7 @@ app.secret_key = os.getenv("APP_SECRET")
 
 CORS(app)
 
-# Backend
-import time
-
-
-@app.route("/api/test", methods=["POST"])
-def test():
-    time.sleep(1)
-    return jsonify("ola"), 200
-
-
-# Frontend
+### INTERFACE ###
 
 client = WebApplicationClient(os.getenv("FENIX_CLIENT_ID"))
 
@@ -83,7 +74,6 @@ def unauthorized_handler():
     return redirect("/login-page")
 
 
-# Flask-Login helper to retrieve a user from our db
 @login_manager.user_loader
 def load_user(user_id):
     return session.query(User).get(user_id)
@@ -184,47 +174,53 @@ def login_page():
 
 ### API ###
 
+
 @app.route("/api/activities/<user_id>")
-def apiActivitiesFiler(user_id):
-    req = requests.get("%s/activities/filter?student_id=%s" % (proxy_url, user_id ), headers=header)
+def api_activities_filter(user_id):
+    req = requests.get("%s/activities/filter?student_id=%s" % (proxy_url, user_id), headers=header)
     return req.json(), req.status_code
+
 
 @app.route("/api/activities/types")
 def apiActivitiesTypes():
-    req = requests.get("%s/activities/types" % proxy_url, headers=header)  
-    data =  req.json()
+    req = requests.get("%s/activities/types" % proxy_url, headers=header)
+
+    if req.status_code != 200:
+        return jsonify([]), 200
+
+    data = req.json()
 
     # Search for external db's
     externals = []
     for activity in data:
-        if activity["db"] != None:
-            if activity["db"] not in externals:
-                externals.append(activity["db"])
+        if activity["db"] and activity["db"] not in externals:
+            externals.append({"name": activity["db"], "values": []})
 
     for external in externals:
-        if "Course" in external:
-            course_req = requests.get("%s/db/%s" % (proxy_url,external), headers=header)
+        req = requests.get("%s/db/%s" % (proxy_url, external["name"]), headers=header)
 
-        if "PresentialServices" in external:
-            presential_req = requests.get("%s/db/%s" % (proxy_url,external), headers=header)
+        if req.status_code == 200:
+            external["values"] = req.json()
 
     for activity in data:
-        if activity["db"] != None:
-            if "Course" in activity["db"]:
-                activity["values"]= course_req.json()
-            if "PresentialServices" in activity["db"]:
-                activity["values"]= presential_req.json()
-    return data, req.status_code
+        if activity["db"]:
+            for external in externals:
+                if activity["db"] == external["name"]:
+                    activity["values"] = external["values"]
+
+    return jsonify(data), 200
+
 
 @app.route("/api/activity/create", methods=["POST"])
 @check_json
 def apiActivityCreate():
     req = requests.post("%s/activity/create" % proxy_url, json=request.json, headers=header)
 
-    if req.status_code != 200:
-        return req.json(), req.status_code
+    if req.status_code != 201:
+        return jsonify("Error "), req.status_code
 
-    return jsonify("Created"), 201 
+    return jsonify("Created"), 201
+
 
 @app.route("/api/evaluation/create", methods=["POST"])
 @check_json
@@ -234,7 +230,8 @@ def apiActivityEvaluation():
     if req.status_code != 200:
         return req.json(), req.status_code
 
-    return jsonify("Created"), 201 
+    return jsonify("Created"), 201
+
 
 if __name__ == "__main__":
     app.run(host=os.getenv("HOST"), port=int(str(os.getenv("PORT"))), debug=True, ssl_context="adhoc")

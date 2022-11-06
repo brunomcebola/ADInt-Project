@@ -53,12 +53,16 @@ def before_request():
 def handle_bad_request(e):
     return jsonify("Bad Gateway"), 502
 
+
 @app.route("/db/<db_name>", methods=["GET"])
 def get_course(db_name):
-    if "Course" in db_name:
+    if db_name == "CoursesDB":
         req = requests.get("%s/courses" % courses_url, headers=header)
-    if "PresentialService" in db_name:
+    elif db_name == "PresentialServicesDB":
         req = requests.get("%s/services" % presential_services_url, headers=header)
+    else:
+        return jsonify("Not Found"), 404
+
     return req.json(), req.status_code
 
 

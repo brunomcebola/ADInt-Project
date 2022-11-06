@@ -18,9 +18,7 @@
 <div></div>
 
 <div id="chart">
-  <div>
-    <canvas></canvas>
-  </div>
+  <div></div>
 </div>
 
 <div id="table"></div>
@@ -32,13 +30,6 @@
   let student_id = "{{user_id}}";
 
   let today = new Date();
-
-  $.ajaxSetup({
-    headers: {
-      Authorization: "user",
-      "Access-Control-Allow-Origin": "*",
-    },
-  });
 
   function setEvalForm(tabContent, tab_id, activitiesTypes, external_id) {
     $(tabContent.children[2]).remove();
@@ -95,11 +86,14 @@
     let stop_time = $(`#activity_form_${tab_id} #stop_time`);
     let options = $(`#activity_form_${tab_id} #options`)[0];
 
-    $(`#activity_form_${tab_id} input[type=radio][name=sub_type_id]`).change(function () {
+    $(`#activity_form_${tab_id} input[type=radio][name=activity_id]`).change(function () {
       options.innerHTML = "";
-      if (activitiesTypes[this.value - 1].values) {
-        options.innerHTML = createOptions(activitiesTypes[this.value - 1].values);
-        $(options.children[0]).dropdown();
+
+      for (activityType of activitiesTypes) {
+        if (activityType.id == this.value && activityType.db) {
+          options.innerHTML = createOptions(activityType.values);
+          $(options.children[0]).dropdown();
+        }
       }
     });
 
@@ -131,8 +125,8 @@
             },
           ],
         },
-        sub_type_id: {
-          identifier: "sub_type_id",
+        activity_id: {
+          identifier: "activity_id",
           rules: [
             {
               type: "checked",
@@ -146,27 +140,30 @@
       onSuccess: function (event, actFields) {
         event.preventDefault();
 
-        actFields.start_time = new Date(actFields.start_time).toISOString();
-        actFields.stop_time = new Date(actFields.stop_time).toISOString();
+        actFields.start_time = new Date(actFields.start_time).toISOString().split(".")[0] + "Z";
+        actFields.stop_time = new Date(actFields.stop_time).toISOString().split(".")[0] + "Z";
+
         actFields.student_id = student_id;
-        actFields.type_id = tab_id;
 
-        if (activitiesTypes[actFields.sub_type_id - 1].values) {
-          actFields.external_id = $(`#activity_form_${tab_id} input[name=external_id]`)[0].value;
+        for (activityType of activitiesTypes) {
+          if (activityType.id == actFields.activity_id && activityType.db) {
+            actFields.external_id = $(`#activity_form_${tab_id} input[name=external_id]`)[0].value;
 
-          if (!actFields.external_id) {
-            $("#error_" + tab_id).removeClass("hidden");
+            if (!actFields.external_id) {
+              $("#error_" + tab_id).removeClass("hidden");
 
-            setTimeout(() => $("#error_" + tab_id).addClass("hidden"), 4000);
+              setTimeout(() => $("#error_" + tab_id).addClass("hidden"), 4000);
 
-            return;
+              return;
+            }
           }
         }
 
         $.ajax({
-          url: `${base_url}/test`,
+          url: `${base_url}/activity/create`,
           type: "POST",
-          data: actFields,
+          data: JSON.stringify(actFields),
+          contentType: "application/json",
           dataType: "json", // type of response data
           cors: true,
           secure: true,
@@ -207,7 +204,7 @@
     let activities = [];
 
     await $.ajax({
-      url: `http://127.0.0.1:5000/activities/filter?student_id=${student_id}`,
+      url: `${base_url}/activities/${student_id}`,
       type: "GET",
       dataType: "json",
       cors: true,
@@ -309,48 +306,56 @@
       },
     };
 
-    const myChart = new Chart($("#chart canvas"), config);
+    let canvas_container = $("#chart div")[0];
+    canvas_container.innerHTML = "";
+    canvas_container.innerHTML = "<canvas></canvas>";
 
     let table = $("#table")[0];
+    table.innerHTML = "";
 
+    const myChart = new Chart($("#chart canvas"), config);
     table.innerHTML = generateTable(activities, 0, 5);
   }
 
-  let tabs = $(".tabular.menu .item");
+  async function setPage() {
+    let activities_types = [];
 
-  tabs.tab();
+    await $.ajax({
+      url: `${base_url}/activities/types`,
+      type: "GET",
+      dataType: "json",
+      cors: true,
+      secure: true,
+      success: function (data) {
+        activities_types = data;
 
-  let testArray = [
-    {
-      id: 1,
-      name: "a",
-      values: [
-        { id: 1, name: "ola" },
-        { id: 2, name: "adeus" },
-      ],
-    },
-    { id: 2, name: "b" },
-    {
-      id: 3,
-      name: "c",
-      values: [
-        { id: 1, name: "ola" },
-        { id: 2, name: "adeus" },
-      ],
-    },
-  ];
+        let tabs = $(".tabular.menu .item");
 
-  for (let tab_id = 1; tab_id <= tabs.length; tab_id++) {
-    tabs[tab_id - 1].children[0].innerHTML = types[tab_id - 1];
+        tabs.tab();
 
-    let tabContent = $(`.ui.tab[data-tab=${tab_id}]`)[0];
+        for (let tab_id = 1; tab_id <= tabs.length; tab_id++) {
+          tabs[tab_id - 1].children[0].innerHTML = types[tab_id - 1];
 
-    $(tabContent).append(createSuccessMessage(tab_id, types[tab_id - 1]));
-    $(tabContent).append(createErrorMessage(tab_id, types[tab_id - 1]));
+          let tabContent = $(`.ui.tab[data-tab=${tab_id}]`)[0];
 
-    setActForm(tabContent, tab_id, testArray);
+          $(tabContent).append(createSuccessMessage(tab_id, types[tab_id - 1]));
+          $(tabContent).append(createErrorMessage(tab_id, types[tab_id - 1]));
+
+          list = [];
+          for (activity_type of activities_types) {
+            if (activity_type.type_name == types[tab_id - 1]) {
+              list.push(activity_type);
+            }
+          }
+
+          setActForm(tabContent, tab_id, list);
+        }
+
+        setTableAndChart();
+      },
+    });
   }
 
-  setTableAndChart();
+  setPage();
 </script>
 {% endblock %}
