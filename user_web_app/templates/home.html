@@ -140,6 +140,14 @@
       onSuccess: function (event, actFields) {
         event.preventDefault();
 
+        if (actFields.stop_time - actFields.start_time <= 0) {
+          $("#error_" + tab_id).removeClass("hidden");
+
+          setTimeout(() => $("#error_" + tab_id).addClass("hidden"), 4000);
+
+          return;
+        }
+
         actFields.start_time = new Date(actFields.start_time).toISOString().split(".")[0] + "Z";
         actFields.stop_time = new Date(actFields.stop_time).toISOString().split(".")[0] + "Z";
 
