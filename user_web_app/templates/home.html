@@ -180,6 +180,8 @@
 
             setTimeout(() => $("#success_" + tab_id).addClass("hidden"), 4000);
 
+            setTableAndChart();
+
             if (tab_id == 3 && actFields.external_id) {
               setEvalForm(tabContent, tab_id, activitiesTypes, actFields.external_id);
             }
@@ -199,8 +201,11 @@
     });
   }
 
+  // TODO: pagination
+  // TODO: choose start and stop date for chart
   async function setTableAndChart() {
     let activities = [];
+
     await $.ajax({
       url: `http://127.0.0.1:5000/activities/filter?student_id=${student_id}`,
       type: "GET",
@@ -215,8 +220,6 @@
         activities = data;
       },
     });
-
-    console.log(activities);
 
     let days = [];
     let datasets = [
@@ -276,13 +279,11 @@
             time = 24;
           }
 
-          for(dataset of datasets) {
-            if(dataset.label == activity.type_name) {
-              dataset.data[i] += time
+          for (dataset of datasets) {
+            if (dataset.label == activity.type_name) {
+              dataset.data[i] += time;
             }
           }
-
-          
         }
       }
     }
@@ -290,45 +291,6 @@
     for (let i = 0; i < days.length; i++) {
       days[i] = days[i].getDate() + "/" + days[i].getMonth() + "/" + days[i].getFullYear();
     }
-
-    /*for (activity of activities) {
-      let days = 0;
-
-      let date = new Date(activity.start_time);
-      let stopDate = new Date(activity.stop_time);
-
-      console.log(activity.duration);
-
-      while (date <= stopDate) {
-        days += 1;
-
-        date.setDate(date.getDate() + 1);
-      }
-
-      console.log(days);
-
-      if (days.length > 1) {
-        for (i = 0; i < days.length; i++) {
-          if (i == 0) {
-            ref = new Date(days[i]);
-            ref.setHours(24, 0, 0, 0);
-
-            days[i] = (Math.abs(Date.parse(ref) - Date.parse(days[i])) / 36e5).toFixed(2);
-          } else if (i == days.length - 1) {
-            ref = new Date(days[i]);
-            ref.setHours(0, 0, 0, 0);
-
-            days[i] = (Math.abs(Date.parse(days[i]) - Date.parse(ref)) / 36e5).toFixed(2);
-          } else {
-            days[i] = 24;
-          }
-        }
-      } else {
-        days[0] = 0;
-      }
-
-      console.log(days);
-    }*/
 
     const data = {
       labels: days,
