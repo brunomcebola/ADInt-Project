@@ -164,7 +164,12 @@ def callback():
 @app.route("/")
 @login_required
 def home():
-    return render_template("home.html", base_url="https://127.0.0.1:8001/api", user_id=current_user.__dict__["username"])
+    return render_template(
+        "home.html",
+        base_url="https://127.0.0.1:8001/api",
+        user_id=current_user.__dict__["username"],
+        user_courses=current_user.__dict__["courses"],
+    )
 
 
 @app.route("/login-page")
