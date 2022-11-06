@@ -90,7 +90,7 @@ def offline():
 
 
 @app.route("/<path:path>")
-def catch_all():
+def catch_all(path):
     return redirect("/")
 
 
@@ -150,21 +150,17 @@ def callback():
         # storing courses
         user_courses.append({"name": course["name"], "professor": professor, "school_year": course["academicTerm"][-9:]})
 
-    # TODO: store in CoursesDB
-
     userinfo_endpoint = "https://fenix.tecnico.ulisboa.pt/api/fenix/v1/person"
     uri, headers, body = client.add_token(userinfo_endpoint)
     userinfo_response = requests.get(uri, headers=headers, data=body)
 
     username = userinfo_response.json()["username"]
     name = userinfo_response.json()["name"]
-    courses = json.dumps(user_courses)
-    user = User(username=username, name=name, courses=courses)
-    print("----------COURSES---------------")
-    print(courses)
-    req = requests.post("%s/course/create/multi" % proxy_url, json=courses, headers=header)
-    if req.status_code != 201:
-        return req.json(), req.status_code
+    courses = user_courses
+    user = User(username=username, name=name, courses=json.dumps(courses))
+
+    requests.post("%s/course/create/multi" % proxy_url, json=courses, headers=header)
+
     try:
         session.add(user)
         session.commit()
@@ -177,6 +173,11 @@ def callback():
     return redirect("/")
 
 
+@app.route("/login-page")
+def login_page():
+    return render_template("login.html")
+
+
 @app.route("/")
 @login_required
 def home():
@@ -186,11 +187,6 @@ def home():
         user_id=current_user.__dict__["username"],
         user_courses=current_user.__dict__["courses"],
     )
-
-
-@app.route("/login-page")
-def login_page():
-    return render_template("login.html")
 
 
 ### API ###

@@ -116,16 +116,51 @@ def delete_course(course_id):
 
 
 @app.route("/course/create", methods=["POST"])
+@check_json
 def create_course():
-    if request.is_json and request.data:
-        data = {}
-        allowed_fields = Course.columns()
-        allowed_fields.remove("id")
-        mandatory_fileds = ["name", "professor", "school_year"]
+    data = {}
+    allowed_fields = Course.columns()
+    allowed_fields.remove("id")
+    mandatory_fileds = ["name", "professor", "school_year"]
 
-        for key in request.json:  # type: ignore
+    for key in request.json:  # type: ignore
+        if key in allowed_fields:
+            data[key] = request.json[key]  # type: ignore
+        else:
+            return jsonify("Bad Request"), 400
+
+    for field in mandatory_fileds:
+        if field not in data:
+            return jsonify("Bad Request"), 400
+
+    course = Course()
+
+    for key, value in data.items():
+        setattr(course, key, value)
+
+    session.add(course)
+    session.commit()
+
+    return jsonify("Created"), 201
+
+
+@app.route("/course/create/multi", methods=["POST"])
+@check_json
+def create_course_multi():
+    allowed_fields = Course.columns()
+    allowed_fields.remove("id")
+    mandatory_fileds = ["name", "professor", "school_year"]
+
+    course_exist = False
+
+    for course in request.json:  # type: ignore
+        data = {}
+
+        print(course["name"])
+
+        for key in course:  # type: ignore
             if key in allowed_fields:
-                data[key] = request.json[key]  # type: ignore
+                data[key] = course[key]  # type: ignore
             else:
                 return jsonify("Bad Request"), 400
 
@@ -133,58 +168,25 @@ def create_course():
             if field not in data:
                 return jsonify("Bad Request"), 400
 
-        course = Course()
-
+        new_course = Course()
         for key, value in data.items():
-            setattr(course, key, value)
+            setattr(new_course, key, value)
 
-        session.add(course)
-        session.commit()
+        courses = session.query(Course).all()
 
-        return jsonify("Created"), 201
+        # Check if Course Already in the DB
+        for n_course in courses:
+            if course["name"] == n_course.as_dict()["name"]:
+                course_exist = True
+        if course_exist:
+            course_exist = False
+            continue
 
-    return jsonify("Bad Request"), 400
+        session.add(new_course)
 
-@app.route("/course/create/multi", methods=["POST"])
-def create_course_multi():
-    course_exist = False
-    if request.is_json and request.data:
-        for course in request.json:  # type: ignore
-            data = {}
-            allowed_fields = Course.columns()
-            allowed_fields.remove("id")
-            mandatory_fileds = ["name", "professor", "school_year"]
+    session.commit()
 
-            for key in course:  # type: ignore
-                if key in allowed_fields:
-                    data[key] = course[key]  # type: ignore
-                else:
-                    return jsonify("Bad Request, 1"), 400
-
-            for field in mandatory_fileds:
-                if field not in data:
-                    return jsonify("Bad Request, 2"), 400
-
-            new_course = Course()
-            for key, value in data.items():
-                setattr(new_course, key, value)
-
-            courses =  session.query(Course).all()
-
-            # Check if Course Already in the DB
-            for n_course in courses:
-                if course["name"] == n_course.as_dict()["name"]:
-                    course_exist = True
-            if course_exist:
-                course_exist = False
-                continue
-
-            session.add(new_course)
-            session.commit()
-
-        return jsonify("Created"), 201
-
-    return jsonify("Bad Request"), 400
+    return jsonify("Created"), 201
 
 
 ################################

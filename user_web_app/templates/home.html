@@ -30,7 +30,7 @@
   let student_id = "{{user_id}}";
   let student_courses = "{{user_courses}}";
 
-  console.log(student_courses)
+  student_courses = JSON.parse(student_courses.replace(/&#34;/g, '"'));
 
   let today = new Date();
 
@@ -348,6 +348,18 @@
       cors: true,
       secure: true,
       success: function (data) {
+        final_courses = [];
+
+        for (course of data[5].values) {
+          for (s_course of student_courses) {
+            if (course.name == s_course.name) {
+              final_courses.push(course);
+            }
+          }
+        }
+
+        data[5].values = final_courses;
+
         activities_types = data;
 
         let tabs = $(".tabular.menu .item");

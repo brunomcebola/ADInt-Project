@@ -43,19 +43,16 @@ def delete_course(course_id):
 
 
 @courses.route("/course/create", methods=["POST"])
-@check_admin
+@check_user
+@check_json
 def create_course():
-    if request.is_json and request.data:
-        req = requests.post("%s/course/create" % courses_url, json=request.json, headers=header)
-        return req.json(), req.status_code
+    req = requests.post("%s/course/create" % courses_url, json=request.json, headers=header)
+    return req.json(), req.status_code
 
-    return jsonify("JSON with fields is mandatory"), 400
 
 @courses.route("/course/create/multi", methods=["POST"])
-@check_admin
+@check_user
+@check_json
 def create_course_multi():
-    if request.is_json and request.data:
-        req = requests.post("%s/course/create/multi" % courses_url, json=request.json, headers=header)
-        return req.json(), req.status_code
-
-    return jsonify("JSON with fields is mandatory"), 400
+    req = requests.post("%s/course/create/multi" % courses_url, json=request.json, headers=header)
+    return req.json(), req.status_code
