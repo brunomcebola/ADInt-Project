@@ -71,7 +71,8 @@ span.required {
   margin: 20px 0;
 }
 
-#chart div {
+#chart #canvas-div,
+#chart_time {
   width: 50%;
   min-width: 605px;
   margin: 0 auto;

@@ -128,9 +128,9 @@ function generateTable(items, page, perPage) {
         <tr>
         <td class="single line">${item.type_name}</td>
           <td class="single line">${item.activity_name}</td>
-          <td class="single line">${item.external_name ? item.external_name : "-"}</td>
-          <td class="single line">${item.start_time}</td>
-          <td class="single line">${item.stop_time}</td>
+          <td>${item.external_name ? item.external_name : "-"}</td>
+          <td>${item.start_time}</td>
+          <td>${item.stop_time}</td>
           <td class="single line">${item.duration}</td>
           <td>${item.description ? item.description : "-"}</td>
         </tr>
@@ -143,7 +143,7 @@ function generateTable(items, page, perPage) {
         <tr>
           <th colspan="7">
             <div class="ui right floated pagination menu">
-              <a class="icon item">
+              <a class="icon item" id="arrow-left">
                 <i class="left chevron icon"></i>
               </a>
   `;
@@ -155,7 +155,7 @@ function generateTable(items, page, perPage) {
   }
 
   table += `
-              <a class="icon item">
+              <a class="icon item" id="arrow-right">
                 <i class="right chevron icon"></i>
               </a>
             </div>
@@ -187,4 +187,30 @@ function createEvaluationForm() {
   `;
 
   return form;
+}
+
+function createChartcalendar() {
+  return `
+    <form class="ui form" id="chart_time" style="margin-top: 20px">
+      <div class="field">
+        <div class="two fields">
+          <div class="field ui calendar" id="chart_start">
+            <h3>Start Date</h3>
+            <div class="ui input left icon">
+              <i class="calendar icon"></i>
+              <input type="text" name="chart_start" placeholder="Start date" />
+            </div>
+          </div>
+
+          <div class="field ui calendar" id="chart_stop">
+            <h3>Stop Date</h3>
+            <div class="ui input left icon">
+              <i class="calendar icon"></i>
+              <input type="text" name="chart_stop" placeholder="Stop date" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  `;
 }

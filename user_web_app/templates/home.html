@@ -17,9 +17,7 @@
 
 <div></div>
 
-<div id="chart">
-  <div></div>
-</div>
+<div id="chart"></div>
 
 <div id="table"></div>
 
@@ -29,6 +27,9 @@
   let base_url = "{{base_url}}";
   let student_id = "{{user_id}}";
   let student_courses = "{{user_courses}}";
+
+  let page = 0;
+  let perPage = 10;
 
   student_courses = JSON.parse(student_courses.replace(/&#34;/g, '"'));
 
@@ -192,6 +193,8 @@
 
             setTimeout(() => $("#success_" + tab_id).addClass("hidden"), 4000);
 
+            page = 0;
+
             setTableAndChart(activitiesTypes);
 
             if (tab_id == 3 && actFields.external_id) {
@@ -215,8 +218,6 @@
     });
   }
 
-  // TODO: pagination
-  // TODO: choose start and stop date for chart
   async function setTableAndChart(activities_types) {
     let activities = [];
 
@@ -333,15 +334,107 @@
       },
     };
 
-    let canvas_container = $("#chart div")[0];
+    let container = $("#chart")[0];
+    container.innerHTML += createChartcalendar();
+    container.innerHTML += "<div id='canvas-div'></div>";
+
+    let form = $(`#chart_time`);
+    let chart_start = $(`#chart_time #chart_start`);
+    let chart_stop = $(`#chart_time #chart_stop`);
+
+    let today = new Date();
+
+    chart_start.calendar({
+      type: "date",
+      maxDate: new Date(today.getFullYear(), today.getMonth(), today.getDate()),
+    });
+
+    chart_stop.calendar({
+      type: "date",
+      maxDate: new Date(today.getFullYear(), today.getMonth(), today.getDate()),
+    });
+
+    chart_start.calendar("set date", new Date());
+    chart_stop.calendar("set date", new Date());
+
+    form.form({
+      fields: {
+        chart_start: {
+          identifier: "chart_start",
+          rules: [
+            {
+              type: "empty",
+              prompt: "Please enter a start date",
+            },
+          ],
+        },
+        chart_stop: {
+          identifier: "chart_stop",
+          rules: [
+            {
+              type: "empty",
+              prompt: "Please enter a stop date",
+            },
+          ],
+        },
+      },
+      inline: true,
+      on: "blur",
+      onSuccess: function (event, actFields) {
+        event.preventDefault();
+      },
+    });
+
+    let canvas_container = $("#chart #canvas-div")[0];
     canvas_container.innerHTML = "";
     canvas_container.innerHTML = "<canvas></canvas>";
+
+    const myChart = new Chart($("#chart canvas"), config);
 
     let table = $("#table")[0];
     table.innerHTML = "";
 
-    const myChart = new Chart($("#chart canvas"), config);
-    table.innerHTML = generateTable(activities, 0, 5);
+    table.innerHTML = generateTable(activities, page, perPage);
+
+    left_arrow = $("#arrow-left");
+    right_arrow = $("#arrow-right");
+
+    left_arrow.click(() => decreaseTablePage(activities));
+    right_arrow.click(() => increaseTablePage(activities));
+  }
+
+  function increaseTablePage(activities) {
+    if (page == Math.ceil(activities.length / perPage) - 1) return;
+
+    page += 1;
+
+    let table = $("#table")[0];
+    table.innerHTML = "";
+
+    table.innerHTML = generateTable(activities, page, perPage);
+
+    left_arrow = $("#arrow-left");
+    right_arrow = $("#arrow-right");
+
+    left_arrow.click(() => decreaseTablePage(activities));
+    right_arrow.click(() => increaseTablePage(activities));
+  }
+
+  function decreaseTablePage(activities) {
+    if (page == 0) return;
+
+    page -= 1;
+
+    let table = $("#table")[0];
+    table.innerHTML = "";
+
+    table.innerHTML = generateTable(activities, page, perPage);
+
+    left_arrow = $("#arrow-left");
+    right_arrow = $("#arrow-right");
+
+    left_arrow.click(() => decreaseTablePage(activities));
+    right_arrow.click(() => increaseTablePage(activities));
   }
 
   async function setPage() {
