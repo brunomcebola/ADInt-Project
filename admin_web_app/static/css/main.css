@@ -161,3 +161,7 @@ button.danger:active {
 #home-page h1 {
   text-align: center;
 }
+
+button.secundary#reset:hover {
+  border: 0;
+}

@@ -109,8 +109,8 @@ function generateTable(items, page, perPage) {
     <table class="ui celled padded table">
       <thead>
         <tr>
+        <th class="single line">Type</th>
           <th class="single line">Activity</th>
-          <th class="single line">Type</th>
           <th class="single line">External</th>
           <th class="single line">Start Time</th>
           <th class="single line">Finish Time</th>
@@ -126,8 +126,8 @@ function generateTable(items, page, perPage) {
 
     table += `
         <tr>
+        <td class="single line">${item.type_name}</td>
           <td class="single line">${item.activity_name}</td>
-          <td class="single line">${item.type_name}</td>
           <td class="single line">${item.external_name ? item.external_name : "-"}</td>
           <td class="single line">${item.start_time}</td>
           <td class="single line">${item.stop_time}</td>

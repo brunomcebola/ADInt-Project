@@ -2,13 +2,15 @@
 <html>
   <head>
     <title>IST - Big Brother</title>
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.png') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.png') }}" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.js"></script>
   </head>
   <body>
-    {% with active_tab=active_tab %}
-    {% include 'navbar.html' %} 
-    {% endwith %}
-    {% block content %}{% endblock %}
+    {% with active_tab=active_tab %} {% include 'navbar.html' %} {% endwith %} {% block content %}{% endblock %}
   </body>
 </html>

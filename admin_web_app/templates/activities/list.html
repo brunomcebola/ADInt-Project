@@ -1,139 +1,118 @@
 {% extends 'layout.html' %} {% block content %}
 <div class="list">
   <div class="header">
-    <h2> Activities list</h2>
+    <h2>Activities list</h2>
   </div>
-  
+
   {% if show_filters %}
-  <form class="filters" action="/activities" method="post">
-    <div>
-      <p>Type</p>
-      <input type="checkbox" name="filter_type" id="type"/>
-      <select name="type_id" id="type_list">
-        {% for type in activities_types %}
-        <option value={{type["value"]}}>{{type["name"]}}</option>
-        {% endfor %}
-      </select>
-    </div>
-  
-    <div>
-      <p>Sub Type</p>
-      <input type="checkbox" name="filter_sub_type" id="subtype"/>
-      <select name="sub_type_id" id="subtype_list">
-        {% for sub_type in activities_sub_types %}
-        <option value={{sub_type["value"]}}>{{sub_type["name"]}}</option>
-        {% endfor %}
-      </select>
-    </div>
-  
-    <div>
-      <p>Course/Service</p>
-      <input type="checkbox" name="filter_external" id="other"/>
-      <select name="external_id" id="other_list">
-        {% for external in externals %}
-        <option value={{external["value"]}}>{{external["name"]}}</option>
-        {% endfor %}
-      </select>
-    </div>
-  
-    <div>
-      <p>Studend id</p>
-      <input type="checkbox" name="filter_student" id="student"/>
-      <input type="text" name="student_id" id="student_id"/>
+  <form class="ui form" method="post" id="form">
+    <div class="field">
+      <div class="three fields">
+        <div class="field">
+          <h3>Activity Type</h3>
+          <div class="ui selection dropdown" id="acts_drop">
+            <input name="activity_id" type="hidden" />
+            <div class="default text">Select a value</div>
+            <i class="dropdown icon"></i>
+            <div class="menu">
+              {%for activity_type in activities_types%}
+              <div class="item" data-value="{{activity_type['id']}}">{{activity_type["name"]}}</div>
+              {%endfor%}
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <h3>External</h3>
+          <div class="ui selection dropdown" id="external_drop">
+            <input name="external_id" type="hidden" />
+            <div class="default text">Select a value</div>
+            <i class="dropdown icon"></i>
+            <div class="menu">
+              {%for external in externals%}
+              <div class="item" data-value="{{external['id']}}">{{external["name"]}}</div>
+              {%endfor%}
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <h3>Studend ID</h3>
+          <div class="ui selection dropdown" id="students_drop">
+            <input name="student_id" type="hidden" />
+            <div class="default text">Select a value</div>
+            <i class="dropdown icon"></i>
+            <div class="menu">
+              {%for student in students%}
+              <div class="item" data-value="{{student}}">{{student}}</div>
+              {%endfor%}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <br>
-  
-    <input type="submit" value="Filter" id="submit"/>
+    <div style="text-align: right">
+      <button class="ui button secundary" type="button" id="reset">Reset</button>
+      <button class="ui button primary" type="submit">Filter</button>
+    </div>
   </form>
   {% endif %}
 
-  <table>
+  <table class="ui celled padded table">
     <thead>
       <tr>
         <th>ID</th>
-        <th>Activity</th>
         <th>Type</th>
+        <th>Activity</th>
         <th>External</th>
         <th>Student ID</th>
         <th>Start Time</th>
         <th>Stop Time</th>
         <th>Description</th>
-        <th>Actions</th>
+        <!--
+          <th>Actions</th>
+        -->
       </tr>
     </thead>
     <tbody>
       {% for activity in activities %}
       <tr>
         <td>{{activity.id}}</td>
-        <td>{{activity.activity_name}}</td>
         <td>{{activity.type_name}}</td>
+        <td>{{activity.activity_name}}</td>
         <td>{{activity.external_name}}</td>
         <td>{{activity.student_id}}</td>
         <td>{{activity.start_time}}</td>
         <td>{{activity.stop_time}}</td>
         <td>{{activity.description}}</td>
-        <td>
-          <a href={{"/activity/%d/delete" % activity.id}}><button class="danger">Delete activity</button></a>
-        </td>
+        <!--
+          <td>
+            <a href={{"/activity/%d/delete" % activity.id}}><button class="danger">Delete activity</button></a>
+          </td>
+        -->
       </tr>
       {% endfor %}
     </tbody>
   </table>
-
-  <script type="text/javascript">
-    const type = document.getElementById("type");
-    const type_list = document.getElementById("type_list");
-
-    const subtype = document.getElementById("subtype");
-    const subtype_list = document.getElementById("subtype_list");
-
-    const other = document.getElementById("other");
-    const other_list = document.getElementById("other_list");
-
-    const student = document.getElementById("student");
-    const student_id = document.getElementById("student_id");
-
-    const submit = document.getElementById("submit");
-  
-    function checkDisabled() {
-      submit.disabled = type.checked && (type_list.value.length === 0) ||
-      subtype.checked && (subtype_list.value.length === 0) || 
-      other.checked && (other_list.value.length === 0);
-    }
-    
-    // Type
-    type.addEventListener('change', function(){
-      checkDisabled()
-    })
-  
-    type_list.addEventListener('change', function(){
-      checkDisabled()
-    })
-
-    // SubType  
-    subtype.addEventListener('change', function(){
-      checkDisabled()
-    })
-  
-    subtype_list.addEventListener('change', function(){
-      checkDisabled()
-    })
-
-    // Course/Service  
-    other.addEventListener('change', function(){
-      checkDisabled()
-    })
-  
-    other_list.addEventListener('change', function(){
-      checkDisabled()
-    })
-
-
-
-  </script>
-  
 </div>
 
+<script>
+  let acts = $("#acts_drop").dropdown();
+  let external = $("#external_drop").dropdown();
+  let student = $("#students_drop").dropdown();
+
+  let c_activity = "{{c_activity}}";
+  let c_external = "{{c_external}}";
+  let c_student = "{{c_student}}";
+
+  if (c_activity) acts.dropdown("set selected", c_activity);
+  if (c_external) external.dropdown("set selected", c_external);
+  if (c_student) student.dropdown("set selected", c_student);
+
+  $("#reset").on("click", function () {
+    window.location.href = "/activities";
+  });
+</script>
 
 {% endblock %}

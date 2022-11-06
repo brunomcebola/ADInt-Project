@@ -4,7 +4,7 @@
     <h2>Evaluations</h2>
   </div>
 
-  <table>
+  <table class="ui celled padded table">
     <thead>
       <tr>
         <th>ID</th>
@@ -13,7 +13,9 @@
         <th>Rating</th>
         <th>Datetime</th>
         <th>Description</th>
-        <th>Actions</th>
+        <!--
+          <th>Actions</th>
+        -->
       </tr>
     </thead>
     <tbody>
@@ -25,9 +27,11 @@
         <td>{{evaluation.rating}}</td>
         <td>{{evaluation.datetime}}</td>
         <td>{{evaluation.description}}</td>
+        <!--
         <td>
           <a href={{"/evaluation/%d/delete" % evaluation.id}}><button class="danger">Delete evaluation</button></a>
         </td>
+        -->
       </tr>
       {% endfor %}
     </tbody>
