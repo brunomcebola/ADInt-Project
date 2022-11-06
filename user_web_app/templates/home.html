@@ -185,7 +185,7 @@
 
             setTimeout(() => $("#success_" + tab_id).addClass("hidden"), 4000);
 
-            setTableAndChart();
+            setTableAndChart(activities_types);
 
             if (tab_id == 3 && actFields.external_id) {
               setEvalForm(tabContent, tab_id, activitiesTypes, actFields.external_id);
@@ -208,7 +208,7 @@
 
   // TODO: pagination
   // TODO: choose start and stop date for chart
-  async function setTableAndChart() {
+  async function setTableAndChart(activities_types) {
     let activities = [];
 
     await $.ajax({
@@ -220,6 +220,16 @@
       success: function (data) {
         for (d of data) {
           d.duration = (Math.abs(Date.parse(d.stop_time) - Date.parse(d.start_time)) / 36e5).toFixed(2);
+
+          for (let activity_type of activities_types) {
+            if (activity_type.id == d.activity_id && activity_type.db) {
+              for (let value of activity_type.values) {
+                if (value.id == d.external_id) {
+                  d.external_name = value.name;
+                }
+              }
+            }
+          }
         }
 
         activities = data;
@@ -293,8 +303,6 @@
       }
     }
 
-    console.log(datasets);
-
     for (let i = 0; i < days.length; i++) {
       days[i] = days[i].getDate() + "/" + days[i].getMonth() + "/" + days[i].getFullYear();
     }
@@ -361,7 +369,7 @@
           setActForm(tabContent, tab_id, list);
         }
 
-        setTableAndChart();
+        setTableAndChart(activities_types);
       },
     });
   }
