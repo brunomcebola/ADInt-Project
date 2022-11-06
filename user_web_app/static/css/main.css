@@ -68,5 +68,11 @@ span.required {
 }
 
 #table {
-  margin-top: 20px;
+  margin: 20px 0;
+}
+
+#chart div {
+  width: 50%;
+  min-width: 605px;
+  margin: 0 auto;
 }

@@ -17,7 +17,11 @@
 
 <div></div>
 
-<div id="chart"></div>
+<div id="chart">
+  <div>
+    <canvas></canvas>
+  </div>
+</div>
 
 <div id="table"></div>
 
@@ -26,6 +30,15 @@
 
   let base_url = "{{base_url}}";
   let student_id = "{{user_id}}";
+
+  let today = new Date();
+
+  $.ajaxSetup({
+    headers: {
+      Authorization: "Bearer " + "admin",
+      "Access-Control-Allow-Origin": "*",
+    },
+  });
 
   function setEvalForm(tabContent, tab_id, activitiesTypes, external_id) {
     $(tabContent.children[2]).remove();
@@ -146,6 +159,11 @@
 
             setTimeout(() => $("#error_" + tab_id).addClass("hidden"), 4000);
 
+            $.toast({
+              displayTime: 5000,
+              message: `You will see me for 5 seconds.`,
+            });
+
             return;
           }
         }
@@ -186,49 +204,75 @@
     });
   }
 
-  let today = new Date();
+  function setChart(activities) {
+    const labels = ["a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a"];
+
+    const data = {
+      labels: labels,
+      datasets: [
+        {
+          label: "Personal",
+          backgroundColor: "#6F00FF",
+          borderColor: "#6F00FF",
+          data: [1,2,3,4,5,6,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+        },
+        {
+          label: "Academic",
+          backgroundColor: "#00ABFF",
+          borderColor: "#00ABFF",
+          data: [1, 11, 6, 3, 21, 31, 46],
+        },
+        {
+          label: "Administrative",
+          backgroundColor: "#FF8900",
+          borderColor: "#FF8900",
+          data: [2, 12, 7, 4, 22, 32, 47],
+        },
+      ],
+    };
+
+    const config = {
+      type: "line",
+      data: data,
+      options: {},
+    };
+
+    const myChart = new Chart($("#chart canvas"), config);
+  }
 
   let tabs = $(".tabular.menu .item");
 
   tabs.tab();
 
-  $.ajaxSetup({
-    headers: {
-      Authorization: "Bearer " + "admin",
-      "Access-Control-Allow-Origin": "*",
+  let testArray = [
+    {
+      id: 1,
+      name: "a",
+      values: [
+        { id: 1, name: "ola" },
+        { id: 2, name: "adeus" },
+      ],
     },
-  });
+    { id: 2, name: "b" },
+    {
+      id: 3,
+      name: "c",
+      values: [
+        { id: 1, name: "ola" },
+        { id: 2, name: "adeus" },
+      ],
+    },
+  ];
 
   for (let tab_id = 1; tab_id <= tabs.length; tab_id++) {
     tabs[tab_id - 1].children[0].innerHTML = types[tab_id - 1];
 
-    let testArray = [
-      {
-        id: 1,
-        name: "a",
-        values: [
-          { id: 1, name: "ola" },
-          { id: 2, name: "adeus" },
-        ],
-      },
-      { id: 2, name: "b" },
-      {
-        id: 3,
-        name: "c",
-        values: [
-          { id: 1, name: "ola" },
-          { id: 2, name: "adeus" },
-        ],
-      },
-    ];
-
     let tabContent = $(`.ui.tab[data-tab=${tab_id}]`)[0];
-
-    $(tabContent).append(createSuccessMessage(tab_id, types[tab_id - 1]));
-    $(tabContent).append(createErrorMessage(tab_id, types[tab_id - 1]));
 
     setActForm(tabContent, tab_id, testArray);
   }
+
+  setChart();
 
   var table = $("#table")[0];
 
