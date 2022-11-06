@@ -193,8 +193,8 @@ function createChartcalendar() {
   return `
     <form class="ui form" id="chart_time" style="margin-top: 20px">
       <div class="field">
-        <div class="two fields">
-          <div class="field ui calendar" id="chart_start">
+        <div class="fields">
+          <div class="seven wide field ui calendar" id="chart_start">
             <h3>Start Date</h3>
             <div class="ui input left icon">
               <i class="calendar icon"></i>
@@ -202,12 +202,16 @@ function createChartcalendar() {
             </div>
           </div>
 
-          <div class="field ui calendar" id="chart_stop">
+          <div class="seven wide field ui calendar" id="chart_stop">
             <h3>Stop Date</h3>
             <div class="ui input left icon">
               <i class="calendar icon"></i>
               <input type="text" name="chart_stop" placeholder="Stop date" />
             </div>
+          </div>
+          <div class="two wide field">
+            <h3 style="color: #fff">y</h3>
+            <button class="ui button primary" type="submit">Search</button>
           </div>
         </div>
       </div>
