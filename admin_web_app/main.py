@@ -6,13 +6,9 @@ import requests
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect
 
-header = {"ADMIN_TOKEN": "admin"}
+header = {"Authorization": "admin"}
 
-mandatory_params = [
-    "HOST",
-    "PORT",
-    "PROXY_URL"
-]
+mandatory_params = ["HOST", "PORT", "PROXY_URL"]
 
 load_dotenv()
 
@@ -65,9 +61,6 @@ def get_service_evaluations(service_id):
 
     if resp.status_code >= 500:
         return redirect("/offline")
-
-    if not resp.json():
-        return redirect("/services")
 
     return render_template("evaluations/list.html", evaluations=resp.json())
 
@@ -133,56 +126,24 @@ def create_course():
 
 @app.route("/course/<course_id>/attendances")
 def get_course_attendances(course_id):
-    resp = requests.get(
-        "%s/activities/filter?type_id=2&sub_type_id=1&external_id=%s" % (proxy_url, course_id), headers=header
-    )
+    resp = requests.get("%s/activities/filter?activity_id=6&external_id=%s" % (proxy_url, course_id), headers=header)
 
     if resp.status_code >= 500:
         return redirect("/offline")
 
     activities = resp.json()
 
-    if not activities:
-        return redirect("/courses")
-
-    resp = requests.get("%s/activities/types" % proxy_url, headers=header)
+    resp = requests.get("%s/courses" % (proxy_url), headers=header)
 
     if resp.status_code >= 500:
         return redirect("/offline")
 
-    activities_types_info = resp.json()
+    courses = resp.json()
 
     for activity in activities:
-        for type in activities_types_info:
-            if activities_types_info[type]["id"] == activity["type_id"]:
-                activity["type_name"] = type
-
-                for sub_type in activities_types_info[type]["values"]:
-                    if activities_types_info[type]["values"][sub_type]["id"] == activity["sub_type_id"]:
-                        activity["sub_type_name"] = sub_type
-
-        resp = requests.get(
-            "%s/activity/type/%s/%s/db" % (proxy_url, activity["type_id"], activity["sub_type_id"]), headers=header
-        )
-
-        if resp.status_code >= 500:
-            return redirect("/offline")
-
-        if resp.json() == "CoursesDB":
-            resp = requests.get("%s/course/%s" % (proxy_url, activity["external_id"]), headers=header)
-
-            if resp.status_code >= 500:
-                return redirect("/offline")
-
-            activity["external_name"] = resp.json()["name"]
-
-        elif resp.json() == "PresentialServicesDB":
-            resp = requests.get("%s/service/%s" % (proxy_url, activity["external_id"]), headers=header)
-
-            if resp.status_code >= 500:
-                return redirect("/offline")
-
-            activity["external_name"] = resp.json()["name"]
+        for course in courses:
+            if course["id"] == activity["external_id"]:
+                activity["external_name"] = course["name"]
 
     return render_template(
         "activities/list.html",

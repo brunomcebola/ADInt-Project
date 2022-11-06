@@ -3,9 +3,12 @@
   <div class="header">
     <h2>Courses list</h2>
 
+    <!--
     <a href="/course/create">
       <button class="primary">Create course</button>
     </a>
+    -->
+    
   </div>
  
 
@@ -30,7 +33,9 @@
         <td>{{course.description}}</td>
         <td>
           <a href={{"/course/%d/attendances" % course.id}}><button class="secundary">View attendances</button></a>
+          <!--
           <a href={{"/course/%d/delete" % course.id}}><button class="danger">Delete course</button></a>
+          -->
         </td>
       </tr>
       {% endfor %}

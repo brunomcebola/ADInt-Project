@@ -1,44 +1,7 @@
 {% extends 'layout.html' %} {% block content %}
 <div class="list">
   <div class="header">
-    <h2>Activity types</h2>
-
-    <a href="/activity/create-type">
-      <button class="primary">Create activity type</button>
-    </a>
-  </div>
-  
-  <table>
-    <thead>
-      <tr>
-        <th>Type ID</th>
-        <th>Type Name</th>
-        <th>Sub Type ID</th>
-        <th>Sub Type Name</th>
-        <th>Is External</th>
-        <th>External DB</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for activity in activities %}
-      <tr>
-        <td>{{activity.type_id}}</td>
-        <td>{{activity.type_name}}</td>
-        <td>{{activity.sub_type_id}}</td>
-        <td>{{activity.sub_type_name}}</td>
-        <td>{{activity.is_external}}</td>
-        <td>{{activity.external_db}}</td>
-        <td>
-          <a href={{"/activity/%d/delete" % activity.id}}><button class="danger">Delete activity type</button></a>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <div class="header">
-    <h2> Students' Activities</h2>
+    <h2> Activities list</h2>
   </div>
   
   {% if show_filters %}
@@ -89,9 +52,9 @@
     <thead>
       <tr>
         <th>ID</th>
+        <th>Activity</th>
         <th>Type</th>
-        <th>Sub Type</th>
-        <th>Course/Service</th>
+        <th>External</th>
         <th>Student ID</th>
         <th>Start Time</th>
         <th>Stop Time</th>
@@ -103,8 +66,8 @@
       {% for activity in activities %}
       <tr>
         <td>{{activity.id}}</td>
+        <td>{{activity.activity_name}}</td>
         <td>{{activity.type_name}}</td>
-        <td>{{activity.sub_type_name}}</td>
         <td>{{activity.external_name}}</td>
         <td>{{activity.student_id}}</td>
         <td>{{activity.start_time}}</td>

@@ -190,8 +190,6 @@
           success: function (data) {
             $("#success_" + tab_id).removeClass("hidden");
 
-            form.form("clear");
-
             setTimeout(() => $("#success_" + tab_id).addClass("hidden"), 4000);
 
             setTableAndChart(activitiesTypes);
@@ -207,6 +205,8 @@
           },
           complete: function () {
             form.removeClass("loading");
+
+            form.form("clear");
           },
         });
 
