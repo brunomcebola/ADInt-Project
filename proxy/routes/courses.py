@@ -50,3 +50,12 @@ def create_course():
         return req.json(), req.status_code
 
     return jsonify("JSON with fields is mandatory"), 400
+
+@courses.route("/course/create/multi", methods=["POST"])
+@check_admin
+def create_course_multi():
+    if request.is_json and request.data:
+        req = requests.post("%s/course/create/multi" % courses_url, json=request.json, headers=header)
+        return req.json(), req.status_code
+
+    return jsonify("JSON with fields is mandatory"), 400
