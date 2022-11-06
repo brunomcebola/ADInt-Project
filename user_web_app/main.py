@@ -2,7 +2,8 @@ import os
 import requests
 import json
 
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, jsonify
+from flask_cors import CORS
 from dotenv import load_dotenv
 from oauthlib.oauth2 import WebApplicationClient
 from sqlalchemy import create_engine, Column, Integer, String
@@ -27,7 +28,22 @@ for param in mandatory_params:
 
 
 app = Flask(__name__)
+
 app.secret_key = os.getenv("APP_SECRET")
+
+CORS(app)
+
+# Backend
+import time
+
+
+@app.route("/api/test")
+def test():
+    time.sleep(1)
+    return jsonify("ola"), 200
+
+
+# Frontend
 
 client = WebApplicationClient(os.getenv("FENIX_CLIENT_ID"))
 
@@ -73,7 +89,7 @@ def handle_bad_request(e):
 
 
 @app.route("/<path:path>")
-def catch_all(path):
+def catch_all():
     return redirect("/")
 
 
@@ -186,7 +202,7 @@ def home():
 
     activities_types = aux_dict
 
-    return render_template("home.html", activities_types=activities_types)
+    return render_template("home.html", base_url="https://127.0.0.1:8001/api")
 
 
 @app.route("/login-page")

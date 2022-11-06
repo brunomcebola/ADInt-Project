@@ -18,26 +18,85 @@
 <div id="table"></div>
 
 <script>
-  var types = ["Personal", "Academic", "Administrative"];
+  let types = ["Personal", "Academic", "Administrative"];
 
-  var today = new Date();
+  let base_url = "{{base_url}}";
 
-  var tabs = $(".tabular.menu .item");
+  let today = new Date();
+
+  let tabs = $(".tabular.menu .item");
 
   tabs.tab();
 
+  $.ajaxSetup({
+    headers: {
+      Authorization: "Bearer " + "admin",
+      "Access-Control-Allow-Origin": "*",
+    },
+  });
+
+  /* $.ajax({
+    url: `${base_url}/test`,
+    type: "GET",
+    dataType: "json", // type of response data
+    cors: true,
+    secure: true,
+    success: function (data) {
+      $("#success_" + tab_id).removeClass("hidden");
+
+      setTimeout(() => $("#success_" + tab_id).addClass("hidden"), 4000);
+    },
+  }); */
+
   for (let tab_id = 1; tab_id <= tabs.length; tab_id++) {
     tabs[tab_id - 1].children[0].innerHTML = types[tab_id - 1];
+
+    let testArray = [
+      {
+        id: 1,
+        name: "a",
+        values: [
+          { id: 1, name: "ola" },
+          { id: 2, name: "adeus" },
+        ],
+      },
+      { id: 2, name: "b" },
+      {
+        id: 3,
+        name: "c",
+        values: [
+          { id: 1, name: "ola" },
+          { id: 2, name: "adeus" },
+        ],
+      },
+    ];
 
     let tabContent = $(`.ui.tab[data-tab=${tab_id}]`)[0];
 
     tabContent.innerHTML += createSuccessMessage(tab_id, types[tab_id - 1]);
     tabContent.innerHTML += createErrorMessage(tab_id, types[tab_id - 1]);
-    tabContent.innerHTML += createForm(tab_id, [{id}]);
+    tabContent.innerHTML += createForm(tab_id, testArray);
 
-    let form = $("#form_" + tab_id);
-    let start_time = $("#form_" + tab_id + " #start_time");
-    let stop_time = $("#form_" + tab_id + " #stop_time");
+    let form = $(`#form_${tab_id}`);
+    let start_time = $(`#form_${tab_id} #start_time`);
+    let stop_time = $(`#form_${tab_id} #stop_time`);
+    let options = $(`#form_${tab_id} #options`)[0];
+
+    $(`#form_${tab_id} input[type=radio][name=sub_type_id]`).change(function () {
+      options.innerHTML = "";
+      if (testArray[this.value - 1].values) {
+        options.innerHTML = createOptions();
+        $(options.children[0]).dropdown();
+      }
+    });
+
+    start_time.calendar({
+      maxDate: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), today.getMinutes()),
+    });
+
+    stop_time.calendar({
+      maxDate: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), today.getMinutes()),
+    });
 
     form.form({
       fields: {
@@ -71,41 +130,47 @@
       },
       inline: true,
       on: "blur",
-      onSuccess: async function (event, fields) {
+      onSuccess: function (event, fields) {
         event.preventDefault();
-        $(this).addClass("loading");
-
-        var type_id = $(event.target).attr("type_id");
 
         fields.start_time = new Date(fields.start_time).toISOString();
         fields.stop_time = new Date(fields.stop_time).toISOString();
-        fields.type_id = type_id;
 
-        await new Promise((resolve) => {
-          setTimeout(() => {
-            resolve();
-          }, 1000);
+        fields.type_id = tab_id;
+
+        if (testArray[fields.sub_type_id - 1].values) {
+          fields.external_id = $(`#form_${tab_id} input[name=external_id]`)[0].value;
+        }
+
+        $.ajax({
+          url: `${base_url}/test`,
+          type: "GET",
+          dataType: "json", // type of response data
+          cors: true,
+          secure: true,
+          beforeSend: function () {
+            console.log(fields);
+            form.addClass("loading");
+          },
+          success: function (data) {
+            $("#success_" + tab_id).removeClass("hidden");
+
+            setTimeout(() => $("#success_" + tab_id).addClass("hidden"), 4000);
+          },
+          error: function () {
+            $("#error_" + tab_id).removeClass("hidden");
+
+            setTimeout(() => $("#error_" + tab_id).addClass("hidden"), 4000);
+          },
+          complete: function () {
+            form.removeClass("loading");
+          },
         });
 
-        $(this).removeClass("loading");
-        $("#success_" + type_id).removeClass("hidden");
-        $("#error_" + type_id).removeClass("hidden");
+        form.form("clear");
 
-        setTimeout(() => {
-          $("#success_" + type_id).addClass("hidden");
-          $("#error_" + type_id).addClass("hidden");
-        }, 4000);
-
-        $(this).form("clear");
+        options.innerHTML = "";
       },
-    });
-
-    start_time.calendar({
-      maxDate: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), today.getMinutes()),
-    });
-
-    stop_time.calendar({
-      maxDate: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), today.getMinutes()),
     });
   }
 

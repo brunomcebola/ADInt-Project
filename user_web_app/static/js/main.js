@@ -47,22 +47,30 @@ function createForm(id, options) {
 
       <div class="field">
         <h3>Activity type <span class="required">*</span></h3>
+        <div>
   `;
 
   for (let option of options) {
-    checkbox = `
-      <div class="ui checkbox">
-        <input type="radio" name="sub_type_id" value=${option.id}>
-        <label style="margin-right: 20px; padding-left: 20px">${option.name}</label>
-      </div>
+    form += `
+          <div style="display: inline-block">
+            <div class="ui radio checkbox">
+              <input type="radio" name="sub_type_id" value=${option.id}>
+              <label style="margin-right: 20px; padding-left: 20px">${option.name}</label>
+            </div>
+          </div>
     `;
-
-    form += checkbox;
   }
 
   form += `
+        </div>
+        <div class="two fields">
+          <div class="field" id="options">
+          </div>
+        </div>
       </div>
+  `;
 
+  form += `
       <div class="field">
         <h3>Description</h3>
         <textarea name="description"></textarea>
@@ -73,6 +81,20 @@ function createForm(id, options) {
   `;
 
   return form;
+}
+
+function createOptions() {
+  return `
+    <div class="ui selection dropdown" style="margin-top: 20px">
+      <input name="external_id" type="hidden">
+      <div class="default text">Select a value</div>
+      <i class="dropdown icon"></i>
+      <div class="menu">
+          <div class="item" data-value="1">Value</div>
+          <div class="item" data-value="2">Another Value</div>
+      </div>
+    </div>
+  `;
 }
 
 function generateTable(items, page, perPage) {

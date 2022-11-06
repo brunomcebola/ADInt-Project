@@ -1,5 +1,6 @@
 body {
   margin: 20px;
+  min-width: 605px;
 }
 
 h1 {
@@ -41,16 +42,21 @@ span.required {
 
 @keyframes increase {
   from {
-    width: 0%;
-  }
-  to {
     width: 100%;
   }
+  to {
+    width: 0%;
+  }
+}
+
+.message {
+  width: 33.33%;
 }
 
 .message .line-fade {
   height: 4px;
   animation: increase 4s linear;
+  float: right;
 }
 
 .message.success .line-fade {
