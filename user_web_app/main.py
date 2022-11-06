@@ -2,13 +2,17 @@ import os
 import requests
 import json
 
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, jsonify
 from dotenv import load_dotenv
 from oauthlib.oauth2 import WebApplicationClient
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user, current_user
+
+from middlewares import *
+
+header = {"USER_TOKEN": "user"}
 
 mandatory_params = [
     "HOST",
@@ -20,6 +24,8 @@ mandatory_params = [
 ]
 
 load_dotenv()
+
+proxy_url = os.getenv("PROXY_URL")
 
 for param in mandatory_params:
     if not os.getenv(param):
@@ -193,6 +199,60 @@ def home():
 def login_page():
     return render_template("login.html")
 
+
+### API ###
+
+@app.route("/api/activities/<user_id>")
+def apiActivitiesFiler(user_id):
+    req = requests.get("%s/activities/filter?student_id=%s" % (proxy_url, user_id ), headers=header)
+    return req.json(), req.status_code
+
+@app.route("/api/activities/types")
+def apiActivitiesTypes():
+    req = requests.get("%s/activities/types" % proxy_url, headers=header)  
+    data =  req.json()
+
+    # Search for external db's
+    externals = []
+    for activity in data:
+        if activity["db"] != None:
+            if activity["db"] not in externals:
+                externals.append(activity["db"])
+
+    for external in externals:
+        if "Course" in external:
+            course_req = requests.get("%s/db/%s" % (proxy_url,external), headers=header)
+
+        if "PresentialServices" in external:
+            presential_req = requests.get("%s/db/%s" % (proxy_url,external), headers=header)
+
+    for activity in data:
+        if activity["db"] != None:
+            if "Course" in activity["db"]:
+                activity["values"]= course_req.json()
+            if "PresentialServices" in activity["db"]:
+                activity["values"]= presential_req.json()
+    return data, req.status_code
+
+@app.route("/api/activity/create", methods=["POST"])
+@check_json
+def apiActivityCreate():
+    req = requests.post("%s/activity/create" % proxy_url, json=request.json, headers=header)
+
+    if req.status_code != 200:
+        return req.json(), req.status_code
+
+    return jsonify("Created"), 201 
+
+@app.route("/api/evaluation/create", methods=["POST"])
+@check_json
+def apiActivityEvaluation():
+    req = requests.post("%s/evaluation/create" % proxy_url, json=request.json, headers=header)
+
+    if req.status_code != 200:
+        return req.json(), req.status_code
+
+    return jsonify("Created"), 201 
 
 if __name__ == "__main__":
     app.run(host=os.getenv("HOST"), port=int(str(os.getenv("PORT"))), debug=True, ssl_context="adhoc")
