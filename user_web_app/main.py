@@ -84,6 +84,11 @@ def handle_bad_request(e):
     return redirect("/offline")
 
 
+@app.route("/offline")
+def offline():
+    return render_template("offline.html")
+
+
 @app.route("/<path:path>")
 def catch_all():
     return redirect("/")
@@ -134,9 +139,16 @@ def callback():
     course_info_response = requests.get(uri, headers=headers, data=body)
 
     user_courses = []
-
+    # https://fenix.tecnico.ulisboa.pt/api/fenix/v1/courses/1610612925989
     for course in course_info_response.json().get("enrolments"):
-        user_courses.append(course["name"])
+
+        course_endpoint = "https://fenix.tecnico.ulisboa.pt/api/fenix/v1/courses/%s" % course["id"]
+        uri, headers, body = client.add_token(course_endpoint)
+        course_response = requests.get(uri, headers=headers, data=body)
+        professor = course_response.json().get("teachers")[-1]["name"]
+
+        # storing courses
+        user_courses.append({"name": course["name"], "professor": professor, "school_year": course["academicTerm"][-9:]})
 
     # TODO: store in CoursesDB
 
@@ -148,7 +160,11 @@ def callback():
     name = userinfo_response.json()["name"]
     courses = json.dumps(user_courses)
     user = User(username=username, name=name, courses=courses)
-
+    print("----------COURSES---------------")
+    print(courses)
+    req = requests.post("%s/course/create/multi" % proxy_url, json=courses, headers=header)
+    if req.status_code != 201:
+        return req.json(), req.status_code
     try:
         session.add(user)
         session.commit()
