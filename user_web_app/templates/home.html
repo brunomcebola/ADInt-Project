@@ -15,77 +15,77 @@
 <div class="ui tab" data-tab="2"></div>
 <div class="ui tab" data-tab="3"></div>
 
+<div></div>
+
+<div id="chart"></div>
+
 <div id="table"></div>
 
 <script>
   let types = ["Personal", "Academic", "Administrative"];
 
   let base_url = "{{base_url}}";
+  let student_id = "{{user_id}}";
 
-  let today = new Date();
+  function setEvalForm(tabContent, tab_id, activitiesTypes, external_id) {
+    $(tabContent.children[2]).remove();
+    $(tabContent).append(createEvaluationForm());
 
-  let tabs = $(".tabular.menu .item");
+    let form = $("#evaluation_form");
 
-  tabs.tab();
+    form.form({
+      onSuccess: function (event, evalFields) {
+        event.preventDefault();
 
-  $.ajaxSetup({
-    headers: {
-      Authorization: "Bearer " + "admin",
-      "Access-Control-Allow-Origin": "*",
-    },
-  });
+        evalFields.rating = $("#evaluation_form .rating").rating("get rating");
+        evalFields.service_id = external_id;
+        evalFields.student_id = student_id;
 
-  /* $.ajax({
-    url: `${base_url}/test`,
-    type: "GET",
-    dataType: "json", // type of response data
-    cors: true,
-    secure: true,
-    success: function (data) {
-      $("#success_" + tab_id).removeClass("hidden");
-
-      setTimeout(() => $("#success_" + tab_id).addClass("hidden"), 4000);
-    },
-  }); */
-
-  for (let tab_id = 1; tab_id <= tabs.length; tab_id++) {
-    tabs[tab_id - 1].children[0].innerHTML = types[tab_id - 1];
-
-    let testArray = [
-      {
-        id: 1,
-        name: "a",
-        values: [
-          { id: 1, name: "ola" },
-          { id: 2, name: "adeus" },
-        ],
+        $.ajax({
+          url: `${base_url}/test`,
+          type: "POST",
+          data: evalFields,
+          dataType: "json",
+          cors: true,
+          secure: true,
+          beforeSend: function () {
+            form.addClass("loading");
+          },
+          success: function (data) {
+            form.form("clear");
+            $("#evaluation_form .rating").rating("set rating", 0);
+            $(tabContent.children[2]).remove();
+            setActForm(tabContent, tab_id, activitiesTypes);
+          },
+          complete: function () {
+            form.removeClass("loading");
+          },
+        });
       },
-      { id: 2, name: "b" },
-      {
-        id: 3,
-        name: "c",
-        values: [
-          { id: 1, name: "ola" },
-          { id: 2, name: "adeus" },
-        ],
-      },
-    ];
+    });
 
-    let tabContent = $(`.ui.tab[data-tab=${tab_id}]`)[0];
+    $("#evaluation_form .rating").rating({
+      maxRating: 5,
+    });
 
-    tabContent.innerHTML += createSuccessMessage(tab_id, types[tab_id - 1]);
-    tabContent.innerHTML += createErrorMessage(tab_id, types[tab_id - 1]);
-    tabContent.innerHTML += createForm(tab_id, testArray);
+    $("#evaluation_form #skip").on("click", function () {
+      $(tabContent.children[2]).remove();
+      setActForm(tabContent, tab_id, activitiesTypes);
+    });
+  }
 
-    let form = $(`#form_${tab_id}`);
-    let start_time = $(`#form_${tab_id} #start_time`);
-    let stop_time = $(`#form_${tab_id} #stop_time`);
-    let options = $(`#form_${tab_id} #options`)[0];
+  function setActForm(tabContent, tab_id, activitiesTypes) {
+    $(tabContent).append(createActivityForm(tab_id, activitiesTypes));
 
-    $(`#form_${tab_id} input[type=radio][name=sub_type_id]`).change(function () {
+    let form = $(`#activity_form_${tab_id}`);
+    let start_time = $(`#activity_form_${tab_id} #start_time`);
+    let stop_time = $(`#activity_form_${tab_id} #stop_time`);
+    let options = $(`#activity_form_${tab_id} #options`)[0];
+
+    $(`#activity_form_${tab_id} input[type=radio][name=sub_type_id]`).change(function () {
       options.innerHTML = "";
-      if (testArray[this.value - 1].values) {
-        options.innerHTML = createOptions();
+      if (activitiesTypes[this.value - 1].values) {
+        options.innerHTML = createOptions(activitiesTypes[this.value - 1].values);
         $(options.children[0]).dropdown();
       }
     });
@@ -130,32 +130,46 @@
       },
       inline: true,
       on: "blur",
-      onSuccess: function (event, fields) {
+      onSuccess: function (event, actFields) {
         event.preventDefault();
 
-        fields.start_time = new Date(fields.start_time).toISOString();
-        fields.stop_time = new Date(fields.stop_time).toISOString();
+        actFields.start_time = new Date(actFields.start_time).toISOString();
+        actFields.stop_time = new Date(actFields.stop_time).toISOString();
+        actFields.student_id = student_id;
+        actFields.type_id = tab_id;
 
-        fields.type_id = tab_id;
+        if (activitiesTypes[actFields.sub_type_id - 1].values) {
+          actFields.external_id = $(`#activity_form_${tab_id} input[name=external_id]`)[0].value;
 
-        if (testArray[fields.sub_type_id - 1].values) {
-          fields.external_id = $(`#form_${tab_id} input[name=external_id]`)[0].value;
+          if (!actFields.external_id) {
+            $("#error_" + tab_id).removeClass("hidden");
+
+            setTimeout(() => $("#error_" + tab_id).addClass("hidden"), 4000);
+
+            return;
+          }
         }
 
         $.ajax({
           url: `${base_url}/test`,
-          type: "GET",
+          type: "POST",
+          data: actFields,
           dataType: "json", // type of response data
           cors: true,
           secure: true,
           beforeSend: function () {
-            console.log(fields);
             form.addClass("loading");
           },
           success: function (data) {
             $("#success_" + tab_id).removeClass("hidden");
 
+            form.form("clear");
+
             setTimeout(() => $("#success_" + tab_id).addClass("hidden"), 4000);
+
+            if (tab_id == 3 && actFields.external_id) {
+              setEvalForm(tabContent, tab_id, activitiesTypes, actFields.external_id);
+            }
           },
           error: function () {
             $("#error_" + tab_id).removeClass("hidden");
@@ -167,11 +181,53 @@
           },
         });
 
-        form.form("clear");
-
         options.innerHTML = "";
       },
     });
+  }
+
+  let today = new Date();
+
+  let tabs = $(".tabular.menu .item");
+
+  tabs.tab();
+
+  $.ajaxSetup({
+    headers: {
+      Authorization: "Bearer " + "admin",
+      "Access-Control-Allow-Origin": "*",
+    },
+  });
+
+  for (let tab_id = 1; tab_id <= tabs.length; tab_id++) {
+    tabs[tab_id - 1].children[0].innerHTML = types[tab_id - 1];
+
+    let testArray = [
+      {
+        id: 1,
+        name: "a",
+        values: [
+          { id: 1, name: "ola" },
+          { id: 2, name: "adeus" },
+        ],
+      },
+      { id: 2, name: "b" },
+      {
+        id: 3,
+        name: "c",
+        values: [
+          { id: 1, name: "ola" },
+          { id: 2, name: "adeus" },
+        ],
+      },
+    ];
+
+    let tabContent = $(`.ui.tab[data-tab=${tab_id}]`)[0];
+
+    $(tabContent).append(createSuccessMessage(tab_id, types[tab_id - 1]));
+    $(tabContent).append(createErrorMessage(tab_id, types[tab_id - 1]));
+
+    setActForm(tabContent, tab_id, testArray);
   }
 
   var table = $("#table")[0];

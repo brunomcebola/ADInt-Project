@@ -30,7 +30,7 @@ class Evaluation(Base):
     __tablename__ = "evaluations"
     id = Column(Integer, primary_key=True)
     service_id = Column(Integer)
-    student_id = Column(Integer)
+    student_id = Column(String)
     rating = Column(Integer)
     datetime = Column(DateTime)
     description = Column(String, default="")

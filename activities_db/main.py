@@ -71,7 +71,7 @@ def store_activities_types(activities_types):
             setattr(activity_type, key, value)
 
         session.add(activity_type)
-    
+
     session.commit()
 
 
@@ -128,7 +128,7 @@ class Activity(Base):
     id = Column(Integer, primary_key=True)
     type_id = Column(Integer)
     sub_type_id = Column(Integer)
-    student_id = Column(Integer)
+    student_id = Column(String)
     start_time = Column(DateTime)
     stop_time = Column(DateTime)
     external_id = Column(Integer, default=0)

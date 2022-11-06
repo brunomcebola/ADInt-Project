@@ -22,9 +22,9 @@ function createErrorMessage(id, name) {
   return errorMessage;
 }
 
-function createForm(id, options) {
+function createActivityForm(id, activitiesTypes) {
   var form = `
-    <form class="ui form" id="form_${id}" type_id=${id}>
+    <form class="ui form" id="activity_form_${id}" type_id=${id}>
       <div class="field">
         <div class="two fields">
           <div class="field ui calendar" id="start_time">
@@ -50,12 +50,12 @@ function createForm(id, options) {
         <div>
   `;
 
-  for (let option of options) {
+  for (let activityType of activitiesTypes) {
     form += `
           <div style="display: inline-block">
             <div class="ui radio checkbox">
-              <input type="radio" name="sub_type_id" value=${option.id}>
-              <label style="margin-right: 20px; padding-left: 20px">${option.name}</label>
+              <input type="radio" name="sub_type_id" value=${activityType.id}>
+              <label style="margin-right: 20px; padding-left: 20px">${activityType.name}</label>
             </div>
           </div>
     `;
@@ -75,23 +75,24 @@ function createForm(id, options) {
         <h3>Description</h3>
         <textarea name="description"></textarea>
       </div>
-
-      <button class="ui button primary" type="submit">Save activity</button>
+      <div style="text-align: right">
+        <button class="ui button primary" type="submit">Submit activity</button>
+      </div>
     </form>
   `;
 
   return form;
 }
 
-function createOptions() {
+function createOptions(options) {
   return `
     <div class="ui selection dropdown" style="margin-top: 20px">
       <input name="external_id" type="hidden">
       <div class="default text">Select a value</div>
       <i class="dropdown icon"></i>
       <div class="menu">
-          <div class="item" data-value="1">Value</div>
-          <div class="item" data-value="2">Another Value</div>
+          <div class="item" data-value=1>Value</div>
+          <div class="item" data-value=2>Another Value</div>
       </div>
     </div>
   `;
@@ -157,4 +158,25 @@ function generateTable(items, page, perPage) {
   `;
 
   return table;
+}
+
+function createEvaluationForm() {
+  let form = `
+    <form class="ui form" id="evaluation_form">
+      <h3>Service Evaluation</h3>
+      <div class="field">
+        <div class="ui yellow rating massive"></div>
+      </div>
+      <div class="field">
+        <h3>Description</h3>
+        <textarea name="description"></textarea>
+      </div>
+      <div style="text-align: right">
+        <button class="ui button tertiary" type="button" id="skip">Skip evaluation</button>
+        <button class="ui button primary" type="submit">Submit evaluation</button>
+      </div>
+    </form>
+  `;
+
+  return form;
 }
